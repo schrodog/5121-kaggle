@@ -7,6 +7,38 @@ import numpy as np
 %matplotlib inline
 
 data = pd.read_csv('./train.csv')
+# %%
+aa = data.isnull().sum()
+# by using filter function in numpy array
+# aa[aa > 0].sort_values(ascending=False)
+# aa[aa > 0].index.tolist()
+full = data
+
+cols1 = ["PoolQC" , "MiscFeature", "Alley", "Fence", "FireplaceQu", "GarageQual", "GarageCond", "GarageFinish", "GarageYrBlt", "GarageType", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType2", "BsmtFinType1", "MasVnrType"]
+cols=["MasVnrArea", "BsmtUnfSF", "TotalBsmtSF", "GarageCars", "BsmtFinSF2", "BsmtFinSF1", "GarageArea"]
+
+for col in cols1:
+  full[col].fillna("None", inplace=True)
+
+for col in cols:
+  full[col].fillna(0, inplace = True)
+
+full.groupby(['LotArea', 'Neighborhood'])['LotFrontage'].transform(lambda x: x.fillna(x.median()) )
+
+# %%
+
+# group different sub class into larger groups
+full.groupby(['MSSubClass'])[['SalePrice']].agg(['mean','median','count'])
+
+from sklearn.linear_model import Lasso
+lasso = Lasso(alpha=0.001)
+lasso.fit(X_scaled, y_log)
+LI_lasso = pd.DataFrame({"Feature importance": lasso.coef_}, index=data_pipe.columns)
+
+FI_lasso[FI_lasso["Feature importance"] != 0].sort_values("Feature importance").plot(kind="barh", figsize=(15,25))
+plt.xticks(rotation=90)
+plt.show()
+
 
 # %%
 # sort by category
@@ -75,16 +107,18 @@ def scatterPlot(typeA, typeB):
 
 # %%
 
-# for i in ['YrSold']:
-#   plotCategory(i)
+for i in ['Neighborhood']:
+  plotCategory(i)
 
-# plotIntervals('YrSold')
 
-for i in data.dtypes.keys().tolist():
-  try:
-    scatterPlot('SalePrice', i)
-  except:
-    pass
+# for i in ['Neighborhood']:
+#   plotIntervals(i)
+
+# for i in data.dtypes.keys().tolist():
+#   try:
+#     scatterPlot('SalePrice', i)
+#   except:
+#     pass
 
 
 # %%
