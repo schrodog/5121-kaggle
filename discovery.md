@@ -1,9 +1,45 @@
+# 
+## feature transformation
+create new features (maybe combine features)
+
 # process
 ## spot anomaly
 1. data.describe()
 2. see graph
 
-##
+## Invalid/null fields
+total: 1460
+
+*LotFrontage      1201 (NA) => mean
+Alley            91  => X
+MasVnrType       1452 (NA) => None
+MasVnrArea       1452 (NA) => 0
+*BsmtQual         1423 (NA) => guess by calc
+*BsmtCond         1423 (NA) => guess by calc
+BsmtExposure     1422 (NA)
+BsmtFinType1     1423 (NA) => X
+BsmtFinType2     1422 (NA) => X
+*Electrical       1459 (NA) => Sbrkr
+FireplaceQu      770
+GarageType       1379
+GarageYrBlt      1379
+GarageFinish     1379
+GarageQual       1379
+GarageCond       1379
+PoolQC           7 
+Fence            281 
+MiscFeature      54 
+------------
+BsmtFinSF1    (0) => keep?
+BsmtFinSF2    (0)
+
+## group values
+OverallQual: 1-3: Bad, 4-6: average, 7-10: good
+OverallCond: 1-3: Bad, 4-6: average, 7-10: good
+
+## discard value
+SaleCondition: discard abnormal?
+
 1. one-hot encoded categorical variable
 2. split into features and data
 3. convert to array
@@ -59,7 +95,6 @@ MiscVal
 ## Absolutely not related
 MoSold
 YrSold
-
 
 Zonning? <- think no need to care
 
