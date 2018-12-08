@@ -40,6 +40,13 @@ OverallCond: 1-3: Bad, 4-6: average, 7-10: good
 ## discard value
 SaleCondition: discard abnormal?
 
+## inconsistent test & train data
+LotFrontage: train > 200 [2 record]
+LotArea: train > 100,000 [4 record]
+
+
+
+
 1. one-hot encoded categorical variable
 2. split into features and data
 3. convert to array

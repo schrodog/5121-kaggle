@@ -52,6 +52,60 @@ df2
   + geom_line(aes(x='letter', y='num_of_letters'))
 )
 
+# %%
+df = pd.DataFrame({
+  'group': range(3), #["Male", "Female", "Child"],
+  'value': [25, 25, 50],
+  'all': [1]*3
+})
+
+(ggplot(df)
+  + geom_col(aes(x='group', y='value'))
+  + coord_flip()
+)
+
+# %%
+from random import randint
+
+n = 100
+
+df = pd.DataFrame({
+  'x': [randint(0,100)/10 for _ in range(n)],
+  'y': [randint(0,100)/10 for _ in range(n)],
+})
+
+df['bb'] = np.array(df['x']) + np.array(df['y'])
+df.columns
+df.values
+
+# %%
+
+(ggplot(df, aes(x="x", y='y', size="bb"))
+  + geom_point()
+)
+
+
+# %%
+from plotnine import * 
+from plotnine.data import *
+import pandas as pd
+import datetime
+from mizani.breaks import date_breaks
+from mizani.formatters import date_format
+
+economics.head()
+# %%
+
+df = pd.melt(economics, id_vars=['date'], value_vars=['psavert', 'uempmed']) 
+df
+
+# %%
+p = ggplot(df, aes(x='date', y='value', color='variable'))
+(p + geom_line()
+   + scale_x_datetime(breaks=date_breaks('10 years'),labels=date_format('%Y'))
+   + scale_color_manual(['r', 'b'])
+)
+
 
 
 

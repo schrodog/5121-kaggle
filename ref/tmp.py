@@ -19,4 +19,26 @@ lasso_0.fit(reg_data, reg_target)
 
 np.where(lasso_0.coef_ != 0)
 
+# %%
+import os
+
+print(os.getcwd())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
