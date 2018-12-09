@@ -1,13 +1,9 @@
-# 
-## feature transformation
-create new features (maybe combine features)
-
-# process
+# Data cleaning
 ## spot anomaly
 1. data.describe()
 2. see graph
 
-## Invalid/null fields
+## Fill Missing
 total: 1460
 
 *LotFrontage      1201 (NA) => mean
@@ -33,19 +29,39 @@ MiscFeature      54
 BsmtFinSF1    (0) => keep?
 BsmtFinSF2    (0)
 
-## group values
+## Outlier
+SaleCondition: discard abnormal?
+
+
+# Data transformation
+## Discretization
 OverallQual: 1-3: Bad, 4-6: average, 7-10: good
 OverallCond: 1-3: Bad, 4-6: average, 7-10: good
+YearBuilt
+YearRemodAdd
+LotShape: (Reg),(IR1,IR2,IR3)
 
-## discard value
-SaleCondition: discard abnormal?
+
+## label -> num
+MSSubClass
+MSZoning
+Street: 0,1
+LotShape
+LandContour
+Utilities
+LotConfig
+
+## normalization
+LotFrontage
+LotArea
+
 
 ## inconsistent test & train data
 LotFrontage: train > 200 [2 record]
 LotArea: train > 100,000 [4 record]
 
 
-
+=======================================================
 
 1. one-hot encoded categorical variable
 2. split into features and data
