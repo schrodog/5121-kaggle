@@ -9,7 +9,7 @@ combine test & train dataset
 
 - find missing data, fill missing
 LotFrontage: plot median, mean; group by neighborhood
-Alley: 'NA'
+Alley: 'NA' ??
 MasVnrType: most frequent
 Bsmt*: string->'NA'
 BsmtFinSF1/2: 0
@@ -22,7 +22,6 @@ Exterior1st/2nd
 KitchenQual
 Functional
 SaleType
-Functional
 
 Feature engineering:
 YearBuilt - GarageYrBuilt => LinearRegression
