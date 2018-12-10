@@ -201,6 +201,7 @@ SimplPoolQC
 YearSoldMeanPrice
 MonthSaledMeanPrice
 MonthSaledCount
+NeighborDistance
 
 ## inconsistent test & train data
 LotFrontage: train > 200 [2 record]

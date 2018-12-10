@@ -1,8 +1,6 @@
-
 # coding: utf-8
 
 # In[1]:
-
 
 # pandas
 import pandas as pd
@@ -55,9 +53,8 @@ test_column = 'MasVnrArea'
 sns.kdeplot(train_data[test_column])
 sns.kdeplot(test_data[test_column])
 
-print 'train:', train_data[test_column][train_data[test_column] > 1500].shape
-print 'test:', test_data[test_column][test_data[test_column] > 1500].shape
-
+print('train:', train_data[test_column][train_data[test_column] > 1500].shape)
+print('test:', test_data[test_column][test_data[test_column] > 1500].shape)
 
 # 测试集中不存在一定范围的数据，而训练集中存在少量数据，将其从训练集中删除。
 # 
@@ -68,11 +65,11 @@ print 'test:', test_data[test_column][test_data[test_column] > 1500].shape
 # In[5]:
 
 
-print train_data.shape
+print(train_data.shape)
 train_data.drop(train_data[train_data["LotFrontage"] > 200].index, inplace=True)
 train_data.drop(train_data[train_data["LotArea"] > 70000].index, inplace=True)
 train_data.drop(train_data[train_data["MasVnrArea"] > 1500].index, inplace=True)
-print train_data.shape
+print(train_data.shape)
 
 train_length = train_data.shape[0]
 
@@ -85,7 +82,7 @@ train_length = train_data.shape[0]
 conbined_data = pd.concat([train_data.loc[:, : 'SalePrice'], test_data])
 conbined_data = conbined_data[test_data.columns]
 display(conbined_data.head(1))
-print conbined_data.shape
+print (conbined_data.shape)
 
 
 # # Filling up missing values
@@ -100,7 +97,7 @@ train_null = train_data[has_null_columns].isnull().sum()
 test_null = test_data[has_null_columns].isnull().sum()
 conbined_null = conbined_data[has_null_columns].isnull().sum()
 
-print 'how many data missed each column of train/test/conbine datas'
+print ('how many data missed each column of train/test/conbine datas')
 missed_data = pd.DataFrame(data=[train_null, test_null, conbined_null],
                              index=['train', 'test', 'conbine'], 
                              columns=has_null_columns)
@@ -394,7 +391,6 @@ built_year_data = conbined_data[['YearBuilt', 'GarageYrBlt']][conbined_data['Gar
 
 # In[42]:
 
-
 built_year_data['GarageYrBlt'] = built_year_data['GarageYrBlt'].map(lambda g : int(g))
 built_year_data['GarageYrBlt'].corr(built_year_data['YearBuilt'])
 
@@ -612,13 +608,12 @@ good_level_map = {'Street': {'Grvl': 0, 'Pave': 1},
      'Fence': {'GdPrv': 2, 'GdWo': 2, 'MnPrv': 1, 'MnWw': 1, 'NA': 0}
     }
 
-print good_level_map.keys()
+print (good_level_map.keys())
 good_level_data = conbined_data[good_level_map.keys()].replace(good_level_map)
-
 good_level_data.columns = good_level_data.columns.map(lambda m : m + '_')
 
 conbined_data[good_level_data.columns] = good_level_data[good_level_data.columns]
-print conbined_data.shape
+print( conbined_data.shape)
 
 
 # Neighborhood 属性表示的是附近的地名，可将其转为经纬度。
@@ -778,7 +773,7 @@ for m in conbined_data[column].values:
     count_duct[str(m)] = count_duct[str(m)] + 1
 
 count_duct= sorted(count_duct.items(), key=lambda d:d[1], reverse = True)
-print np.array(count_duct)[:,0]
+print (np.array(count_duct)[:,0])
 sns.countplot(conbined_data[column])
 
 
@@ -928,28 +923,22 @@ conbined_data.head()
 str_columns = conbined_data.select_dtypes(include=['object']).columns.values
 num_columns = conbined_data.select_dtypes(exclude=['object']).columns.values[1:]
 
-
 # In[80]:
-
-
 num_columns
-
 
 # In[81]:
 
-
 scater_skew_num_columns = num_columns.tolist()
-print len(scater_skew_num_columns)
+print (len(scater_skew_num_columns))
 for column in num_columns:
     # for boolean features, do not scatter and skewed
     if set(conbined_data[column]) == {0, 1}:
         scater_skew_num_columns.remove(column)
 
-print len(scater_skew_num_columns)
+print (len(scater_skew_num_columns))
 
 
 # In[82]:
-
 
 t = conbined_data[scater_skew_num_columns].quantile(.95)
 use_max_scater = t[t == 0].index
@@ -969,19 +958,15 @@ skewed = conbined_data[scater_skew_num_columns].apply(lambda x: skew(x.astype(fl
 skewed = skewed[skewed > 0.75]
 skewed = skewed.index
 skewed = skewed.drop(['NeighborPrice','NeighborPrice-s2','NeighborPrice-s3'])
-print 'skewed features', skewed.shape[0],' from total ',conbined_data.shape[1],' features'
+print('skewed features', skewed.shape[0],' from total ',conbined_data.shape[1],' features')
 conbined_data[skewed] = np.log1p(conbined_data[skewed])
 
 
 # In[84]:
-
-
 price_feature = ["MonthSaledMeanPrice","MSSubClassMeanPrice","NeighborPrice","NeighborPrice-s2","NeighborPrice-s3","NeighborPrice-sq"]
 conbined_data[price_feature] = np.log1p(conbined_data[price_feature])
 
-
 # In[85]:
-
 
 conbined_data.shape
 
