@@ -901,7 +901,7 @@ plt.ylabel('Feature Importance Score')
 
 # In[77]:
 
-
+# top 15 important features add ^2,^3,sqrt new fields
 top_n = 15
 poly_columns = feature_importances.index.values[:top_n]
 for column in poly_columns:

@@ -133,6 +133,22 @@ print(a.shape)
 
 LDA(n_components=2).fit_transform(iris.data, iris.target)
 
+# %%
+from sklearn.feature_extraction import DictVectorizer
+import numpy as np
+
+v = DictVectorizer(sparse=False)
+train = [
+	{"user": "1", "item": "5", "age": 19},
+	{"user": "2", "item": "43", "age": 33},
+	{"user": "3", "item": "20", "age": 55},
+	{"user": "4", "item": "10", "age": 20},
+]
+X = v.fit_transform(train)
+
+print(X)
+print(v.get_feature_names())
+
 
 
 
