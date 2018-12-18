@@ -80,12 +80,12 @@ print(gg)
 # %%
 print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
 
-# %%
 
 # %% fill missing values
 
 # recover 'NA' type
 none_type_word = "None"
+
 raw_dtrain['Alley'].fillna(none_type_word, inplace=True)
 raw_dtrain['FireplaceQu'].fillna(none_type_word, inplace=True)
 raw_dtrain['PoolQC'].fillna(none_type_word, inplace=True)
@@ -139,7 +139,6 @@ def getGarageAge():
 
 GarageAge = getGarageAge()
 
-# %%
 
 raw_dtrain['RemodAge'] = pd.Series(RemodAge)
 raw_dtrain['HouseAge'] = pd.Series(HouseAge)
@@ -147,16 +146,28 @@ raw_dtrain['Oldness'] = pd.Series(Oldness)
 raw_dtrain['GarageAge'] = pd.Series(GarageAge)
 # %% drop features
 
+def label2Num(*args):
+  lis = args[0] if isinstance(args[0],list) else [args[0]]
+  for field in lis:
+    uniq = raw_dtrain[field].unique()
+    trans = dict([(uniq[i],i) for i in range(len(uniq))])
+    raw_dtrain[field] = raw_dtrain[field].transform(lambda x: trans[x])
 
 # %% binary variables for very low variance features
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_extraction import DictVectorizer
 
-v = DictVectorizer(sparse=False)
-X = v.fit_transform(raw_dtrain['Condition1'])
+label2Num(['Condition1','Condition2'])
+# v = DictVectorizer(sparse=False)
+# X = v.fit_transform(raw_dtrain['Condition1'])
+# print(v.get_feature_names())
 
-print(X)
-print(v.get_feature_names())
+# data = np.array(raw_dtrain['Condition2']).reshape(-1,1)
+data = raw_dtrain[['Condition1', 'Condition2']]
+sel = VarianceThreshold(0.01)
+sel_value = sel.fit_transform(data)
+
+sel.variances_
 
 
 # %% label -> number
