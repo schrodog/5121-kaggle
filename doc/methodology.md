@@ -50,10 +50,7 @@ GrLivAreaLevel
 GarageAreaLevel
 OpenPorchLevel
 
-## label -> num
-MSSubClass
-MSZoning
-Street: 0,1
+## label -> num 
 LotShape
 LandContour
 Utilities
@@ -208,68 +205,4 @@ LotFrontage: train > 200 [2 record]
 LotArea: train > 100,000 [4 record]
 
 
-
-
-
-
-
-=======================================================
-
-1. one-hot encoded categorical variable
-2. split into features and data
-3. convert to array
-4. split data into training and testing
-
-# SalePrice VS xxx
-## Strong response
-OverallQual
-GrLivArea
-GarageArea
-Neighborhood (Some district obviously better)
-YearBuilt (newer -> higher price)
-ExterQual
-BsmtQual
-BsmtCond
-TotalBsmtSF
-1stFlrSF
-2ndFlrSF (very strong correlation)
-GarageArea
-
-## Normal response
-BsmtFinSF1
-FullBath
-TotRmsAbvGrd
-Fireplaces
-
-
-## Very weak response
-LotArea
-LotFrontage
-ExterCond
-BsmtFinSF2
-BsmtFullBath
-BsmtHalfBath
-BedroomAbvGr
-GarageCars
-WoodDeckSF
-SaleType
-SaleCondition
-
-## Nearly no relation
-MasVnrArea
-BsmtUnfSF
-Heating
-GarageYrBlt
-OpenPorchSF
-EnclosedPorch
-3SsnPorch
-ScreenPorch
-PoolArea (too few data)
-MiscVal
-
-## Absolutely not related
-MoSold
-YrSold
-
-Zonning? <- think no need to care
 

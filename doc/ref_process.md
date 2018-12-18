@@ -9,6 +9,7 @@ combine test & train dataset
 
 - find missing data, fill missing
 LotFrontage: plot median, mean; group by neighborhood
+
 Alley: 'NA'
 MasVnrType: most frequent
 Bsmt*: string->'NA'
@@ -56,16 +57,19 @@ eg. LotShape, LandContour ...
 - simplify existing feature, discretize
 OverallQual: 1-3, 4-6, 7-10
 OverallCond: 1-3, 4-6, 7-10
-OverallGrad = OverallQual*OverallCond
-GarageGrade = GarageQual*GarageCond
+
+OverallGrad = OverallQual * OverallCond
+GarageGrade = GarageQual * GarageCond
 ExterGrade = ExterQual*ExterCond
 KitchenScore = KitchenAbvGr*KitchenQual
 FireplaceScore = Fireplaces*FireplaceQu
 GarageScore = GarageArea*GarageQual
 PoolScore = PoolArea*PoolQC
+
 TotalBath = BsmtFullBath + 0.5*BsmtHalfBath + FullBath + 0.5*HalfBath
 TotalPorchSF = OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch
 AllSF = GrLivArea + TotalBsmtSF + TotalPorchSF + WoodDeckSF + PoolArea
+
 BoughtOffPlan = SaleCondition(abnormal,alloca,..) -> 0
 
 - find important feature by XGBRegressor
@@ -83,14 +87,6 @@ MonthSaledMeanPrice, MSSubClassMeanPrice, NeighborPrice.. -> log(1+x)
 
 - drop columns missing in test data
 exterior1st_imstucc,stone, ...
-
-
-
-
-
-
-
-
 
 
 

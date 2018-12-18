@@ -4,7 +4,6 @@ remove Id, SalePrice
 - remove outlier
 lotFrontage, LotArea, MasVnrArea
 - where data range exist only in training, not testing data
-
 combine test & train dataset
 
 - find missing data, fill missing
@@ -13,28 +12,36 @@ Alley: 'NA' ??
 MasVnrType: most frequent
 Bsmt*: string->'NA'
 BsmtFinSF1/2: 0
-Electrical: missing 1, most freq
-FireplaceQu,PoolQC,MiscFeature,Fence: 'NA'
-Garage*: 'NA'
+BsmtFinType1, BsmtFinType2: 'Unf'
+  {basement of type1 and type2 are different, one can already finished and another is not finished}
+
+Electrical: missing 1, {almost normal data} => most freq
+FireplaceQu: 'NA'
+  { refer to no fireplace, Fireplaces=0}
+PoolQC: 'NA'
+  {becoz poolArea=0 for all NA}
+MiscFeature,Fence: 'NA'
+GarageFinish, GarageType, GarageQual, GarageType: 'NA'
+
+
+## Feature engineering
+- remove
+Utilities {almost all same class}
+
 MSZoning
-Utilities
 Exterior1st/2nd
 KitchenQual
 Functional
 SaleType
 
-Feature engineering:
-YearBuilt - GarageYrBuilt => LinearRegression
-fill GarageYrBlt 'NA' with prediction
+- add new features
+1. year related
+RemodAge = YrSold - YearRemodAdd
+HouseAge = YrSold - YearBuilt
+Oldness = HouseAge*0.5 + RemodAge
+GarageAge = -1 Or YrSold - max(GarageYrBlt, YearRemodAdd)
 
-RemodYear = YearRemodAdd - YearBuilt
-HasRemodeled = YearRemodAdd != YearBuilt (remodeling happen from built)
-HasRecentRemodel = YearRemodAdd == YrSold (remodeling happen when house sold)
 
-GarageBltYears = GarageYrBlt - YearBuilt
-Now_YearBuilt = 2017 - YearBuilt
-Now_YearRemodAdd = 2017 - YearRemodAdd
-Now_GarageYrBlt = 2017 - GarageYrBlt
 
 - discover month more house sold, price inverse with sold count
 - price,count ~ MSSubClass
@@ -55,6 +62,7 @@ eg. LotShape, LandContour ...
 - simplify existing feature, discretize
 OverallQual: 1-3, 4-6, 7-10
 OverallCond: 1-3, 4-6, 7-10
+
 OverallGrad = OverallQual*OverallCond
 GarageGrade = GarageQual*GarageCond
 ExterGrade = ExterQual*ExterCond
@@ -66,6 +74,8 @@ TotalBath = BsmtFullBath + 0.5*BsmtHalfBath + FullBath + 0.5*HalfBath
 TotalPorchSF = OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch
 AllSF = GrLivArea + TotalBsmtSF + TotalPorchSF + WoodDeckSF + PoolArea
 BoughtOffPlan = SaleCondition(abnormal,alloca,..) -> 0
+
+Neighborhood binning
 
 - find important feature by XGBRegressor
 15 most import feature
