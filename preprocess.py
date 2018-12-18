@@ -11,7 +11,9 @@ from plotnine import *
 from sklearn.feature_selection import VarianceThreshold, SelectKBest
 from scipy.stats import pearsonr
 from minepy import MINE
-% matplotlib tk
+# % matplotlib tk
+pd.options.mode.chained_assignment = None
+
 # %%
 
 def mic(x,y):
@@ -36,7 +38,7 @@ raw_dtest = pd.read_csv('data/test.csv')
 raw_dtrain.info()
 # %% fill missing value
 
-data = raw_dtrain[np.invert(pd.isnull(raw_dtrain['LotFrontage']))]
+data = raw_dtrain.loc[np.invert(pd.isnull(raw_dtrain['LotFrontage']))]
 data['MSSubClass'] = data['MSSubClass'].apply(str)
 # %%
 
