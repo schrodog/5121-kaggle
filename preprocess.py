@@ -13,6 +13,7 @@ from scipy.stats import pearsonr
 from minepy import MINE
 # % matplotlib tk
 pd.options.mode.chained_assignment = None
+np.set_printoptions(precision=5, suppress=True)
 
 # %%
 import socket; socket.gethostname()
@@ -52,20 +53,22 @@ raw_dtest = pd.read_csv('data/test.csv')
 
 # %%
 
-print(raw_dtrain['MSSubClass'].describe())
+print(raw_dtrain['MiscVal'].describe())
+# %%
 
+np.count_nonzero(raw_dtrain['MiscVal'] == 0)
 # %%
 
 types = 'GarageAge'
 data = raw_dtrain
 # data = raw_dtrain[raw_dtrain['GarageAge'] >= 0]
 
-gg = (ggplot(data, aes('Condition1'))
-  # + geom_point(aes(x=types, y='GarageType'))
-  + geom_bar()
-  + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
+gg = (ggplot(data, aes('MiscVal'))
   # + geom_point()
-  # + geom_histogram(binwidth=10000)
+  # + geom_bar()
+  # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
+  # + geom_point()
+  + geom_histogram(binwidth=0.1)
   # + facet_wrap('MoSold')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
   # + coord_cartesian(ylim=(1900,2010))
@@ -74,8 +77,6 @@ gg = (ggplot(data, aes('Condition1'))
 
 print(gg)
 # gg.save('outputs/month_price.pdf')
-
-# print(raw_dtrain[types].describe())
 
 # %%
 print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
@@ -146,29 +147,50 @@ raw_dtrain['Oldness'] = pd.Series(Oldness)
 raw_dtrain['GarageAge'] = pd.Series(GarageAge)
 # %% drop features
 
+var_data = raw_dtrain.copy()
 def label2Num(*args):
   lis = args[0] if isinstance(args[0],list) else [args[0]]
   for field in lis:
-    uniq = raw_dtrain[field].unique()
+    uniq = var_data[field].unique()
     trans = dict([(uniq[i],i) for i in range(len(uniq))])
-    raw_dtrain[field] = raw_dtrain[field].transform(lambda x: trans[x])
+    var_data[field] = var_data[field].transform(lambda x: trans[x])
 
 # %% binary variables for very low variance features
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_extraction import DictVectorizer
 
-label2Num(['Condition1','Condition2'])
+test_list = ['MSZoning','Street','Alley','LotShape','LandContour','Utilities','LotConfig','LandSlope','Condition1','Condition2','BldgType','HouseStyle','RoofStyle','RoofMatl','MasVnrType','ExterQual','ExterCond','Foundation','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2','Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','FireplaceQu','GarageType','GarageFinish','GarageQual','PoolQC','Fence','MiscFeature','SaleType','SaleCondition']
+label2Num(test_list)
 # v = DictVectorizer(sparse=False)
 # X = v.fit_transform(raw_dtrain['Condition1'])
 # print(v.get_feature_names())
 
 # data = np.array(raw_dtrain['Condition2']).reshape(-1,1)
-data = raw_dtrain[['Condition1', 'Condition2']]
+data = var_data[test_list]
 sel = VarianceThreshold(0.01)
 sel_value = sel.fit_transform(data)
 
 sel.variances_
+# %%
 
+orders = np.argsort(sel.variances_)
+np.sort(sel.variances_, order=orders)
+
+# %%
+
+var_data = pd.DataFrame({'x': test_list, 'y': sel.variances_})
+sf = var_data.sort_values(by='y', ascending=False)['x']
+var_data['x'] = pd.Categorical(var_data['x'], categories=sf.values, ordered=True)
+# data = data.reset_index(drop=True)
+
+gg = (ggplot(var_data)
+  + geom_col(aes(x='x',y='y'))
+  + theme(axis_text_x=element_text(rotation=70, ha="right"))
+)
+
+print(gg)
+# %%
+sf.values
 
 # %% label -> number
 
@@ -183,6 +205,10 @@ mapping = {
 
 # label -> num
 'LotShape': {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 3},
+
+# multi label -> binary/tertiary
+'RoofStyle': {'Gable': 0, 'Flat':2, 'Gambrel':2, 'Hip': 1, 'Mansard':2, 'Shed':2},
+'LotShape': {'Reg':0, 'IR1':1, 'IR2':2, 'IR3':2},
 ''
 
 # grouping

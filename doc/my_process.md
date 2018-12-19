@@ -1,12 +1,11 @@
-# process
+## Data Cleaning
 remove Id, SalePrice
-
 - remove outlier
 lotFrontage, LotArea, MasVnrArea
 - where data range exist only in training, not testing data
 combine test & train dataset
 
-- find missing data, fill missing
+### find missing data, fill missing
 LotFrontage: plot median, mean; group by neighborhood
 Alley: 'NA' ??
 MasVnrType: most frequent
@@ -25,22 +24,36 @@ GarageFinish, GarageType, GarageQual, GarageType: 'NA'
 
 
 ## Feature engineering
-- remove
-Utilities {almost all same class}
-
-MSZoning
-Exterior1st/2nd
-KitchenQual
-Functional
-SaleType
-
-- add new features
+### add new features
 1. year related
 RemodAge = YrSold - YearRemodAdd
 HouseAge = YrSold - YearBuilt
 Oldness = HouseAge*0.5 + RemodAge
 GarageAge = -1 Or YrSold - max(GarageYrBlt, YearRemodAdd)
 
+### change features
+2. find features with very low var
+- change to binary variable
+'RoofStyle', 'LotShape', 'MSZoning', 'Electrical', 'Condition2', 'RoofMatl', 'Alley', 'Heating', 'LandSlope', 'MiscFeature', 'CentralAir', 'PoolQC', 'Street', 'Utilities'
+
+RoofStyle -> Gable, Hip, others
+LotShape -> Reg, IR1, others
+LandSlope -> Gtl, others
+MSZoning -> RL, RM, FV, others
+Heating -> GasA, others
+Alley -> Yes,No
+Electrical -> SBrkr, others
+
+MiscVal {1408 records == 0}
+
+### Drop features
+CentralAir
+PoolQC {almost all None...} ?
+Condition2
+RoofMatl
+Street
+Utilities
+MiscFeature {Only Shed is meaningful}
 
 
 - discover month more house sold, price inverse with sold count
