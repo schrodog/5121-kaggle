@@ -1,3 +1,6 @@
+# Note
+{ } = explanation
+
 ## Data Cleaning
 remove Id, SalePrice
 - remove outlier
@@ -25,14 +28,38 @@ GarageFinish, GarageType, GarageQual, GarageType: 'NA'
 
 ## Feature engineering
 ### add new features
-1. year related
+1. year 
 RemodAge = YrSold - YearRemodAdd
 HouseAge = YrSold - YearBuilt
 Oldness = HouseAge*0.5 + RemodAge
 GarageAge = -1 Or YrSold - max(GarageYrBlt, YearRemodAdd)
 
+2. grade, value
+OverallGrad = OverallQual + OverallCond
+GarageGrade = GarageQual + GarageCond
+ExterGrade = ExterQual + ExterCond
+KitchenValue = KitchenAbvGr * KitchenQual
+FireplaceValue = Fireplaces * FireplaceQu
+GarageValue = GarageArea * GarageQual
+PoolValue = PoolArea * PoolQC
+  {PoolArea only 7 record, 400 < x < 750 }
+
+BsmtValue = BsmtFinType1*BsmtFinSF1 + BsmtFinType2*BsmtFinSF2 + 0.2*BsmtUnfSF + BsmtCond*BsmtQual*TotalBsmtSF*0.3
+{BsmtFinSF2: >0 count=167, BsmtFinSF1 >0 count=467
+BsmtUnfSF >0 count=1342
+}
+
+BathValue = BsmtFullBath + 0.5*BsmtHalfBath + 2*FullBath + 1.5*HalfBath
+
+3. total area
+TotalPorchSF = OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch
+{count_0: ScreenPorch=1344, 3SsnPorch=1436}
+
+TotalSF = 1stFlrSF + 2ndFlrSF + GrLivArea + 0.4*(LowQualFinSF + TotalBsmtSF) + 0.1*(WoodDeckSF + TotalPorchSF + PoolArea + LotArea + GarageArea)
+
+
 ### change features
-2. find features with very low var
+1. find features with very low var
 - change to binary variable
 'RoofStyle', 'LotShape', 'MSZoning', 'Electrical', 'Condition2', 'RoofMatl', 'Alley', 'Heating', 'LandSlope', 'MiscFeature', 'CentralAir', 'PoolQC', 'Street', 'Utilities'
 
@@ -44,8 +71,6 @@ Heating -> GasA, others
 Alley -> Yes,No
 Electrical -> SBrkr, others
 
-MiscVal {1408 records == 0}
-
 ### Drop features
 CentralAir
 PoolQC {almost all None...} ?
@@ -54,6 +79,19 @@ RoofMatl
 Street
 Utilities
 MiscFeature {Only Shed is meaningful}
+
+### Discretize (num -> class)
+MiscVal: 0 -> 0, >0 -> 1
+ {1408 records == 0}
+
+GarageQual, GarageCond -> 0-5
+GarageQual, GarageCond -> 0-5
+
+
+### OneHot Encoding
+Integer Encoding: for field with natural ordering, comparable
+OneHot Encoding: no apparent ordering
+
 
 
 - discover month more house sold, price inverse with sold count
@@ -73,20 +111,7 @@ create binary fields on popular features
 eg. LotShape, LandContour ...
 
 - simplify existing feature, discretize
-OverallQual: 1-3, 4-6, 7-10
-OverallCond: 1-3, 4-6, 7-10
 
-OverallGrad = OverallQual*OverallCond
-GarageGrade = GarageQual*GarageCond
-ExterGrade = ExterQual*ExterCond
-KitchenScore = KitchenAbvGr*KitchenQual
-FireplaceScore = Fireplaces*FireplaceQu
-GarageScore = GarageArea*GarageQual
-PoolScore = PoolArea*PoolQC
-TotalBath = BsmtFullBath + 0.5*BsmtHalfBath + FullBath + 0.5*HalfBath
-TotalPorchSF = OpenPorchSF + EnclosedPorch + 3SsnPorch + ScreenPorch
-AllSF = GrLivArea + TotalBsmtSF + TotalPorchSF + WoodDeckSF + PoolArea
-BoughtOffPlan = SaleCondition(abnormal,alloca,..) -> 0
 
 Neighborhood binning
 

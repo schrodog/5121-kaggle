@@ -1,124 +1,107 @@
 # %%
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import collections
-import math
-import numpy as np
-%matplotlib inline
+from plotnine import *
+from sklearn.feature_selection import VarianceThreshold, SelectKBest
+from scipy.stats import pearsonr
+from minepy import MINE
 
-data = pd.read_csv('./train.csv')
-# %%
-aa = data.isnull().sum()
-# by using filter function in numpy array
-# aa[aa > 0].sort_values(ascending=False)
-# aa[aa > 0].index.tolist()
-full = data
+pd.options.mode.chained_assignment = None
+np.set_printoptions(precision=5, suppress=True)
 
-cols1 = ["PoolQC" , "MiscFeature", "Alley", "Fence", "FireplaceQu", "GarageQual", "GarageCond", "GarageFinish", "GarageYrBlt", "GarageType", "BsmtExposure", "BsmtCond", "BsmtQual", "BsmtFinType2", "BsmtFinType1", "MasVnrType"]
-cols=["MasVnrArea", "BsmtUnfSF", "TotalBsmtSF", "GarageCars", "BsmtFinSF2", "BsmtFinSF1", "GarageArea"]
-
-for col in cols1:
-  full[col].fillna("None", inplace=True)
-
-for col in cols:
-  full[col].fillna(0, inplace = True)
-
-full.groupby(['LotArea', 'Neighborhood'])['LotFrontage'].transform(lambda x: x.fillna(x.median()) )
-
+raw_dtrain = pd.read_csv('data/train.csv')
+raw_dtest = pd.read_csv('data/test.csv')
 # %%
 
-# group different sub class into larger groups
-full.groupby(['MSSubClass'])[['SalePrice']].agg(['mean','median','count'])
+# print(raw_dtrain['BsmtFinSF1'].describe())
+np.count_nonzero(raw_dtrain['3SsnPorch'] == 0)
+# %%
 
-from sklearn.linear_model import Lasso
-lasso = Lasso(alpha=0.001)
-lasso.fit(X_scaled, y_log)
-LI_lasso = pd.DataFrame({"Feature importance": lasso.coef_}, index=data_pipe.columns)
+# types = 'GarageAge'
+# raw_dtrain[['ExterQual','ExterCond','Id']].groupby(['ExterQual','ExterCond']).count()
 
-FI_lasso[FI_lasso["Feature importance"] != 0].sort_values("Feature importance").plot(kind="barh", figsize=(15,25))
-plt.xticks(rotation=90)
-plt.show()
+data = raw_dtrain[raw_dtrain['BsmtUnfSF'] >= 0]
 
+# data = raw_dtrain[raw_dtrain['MiscVal'] > 0]
+
+gg = (ggplot(data, aes('1stFlrSF'))
+  # + geom_point()
+  # + geom_col()
+  # + geom_bar()
+  # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
+  # + geom_point()
+  + geom_histogram(binwidth=100)
+  # + facet_wrap('Neighborhood')
+  # + scale_y_continuous(breaks=range(1850, 2020, 10) )
+  # + coord_cartesian(ylim=(1900,2010))
+  # + theme(axis_text_x=element_text(rotation=0, ha="right"))
+)
+
+print(gg)
+# gg.save('outputs/month_price.pdf')
 
 # %%
-# sort by category
+print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
 
-def plotCategory(types):
-  src = (data[types]).tolist()
 
-  cnt = collections.Counter()
-  for nums in src:
-    cnt[nums] += 1
 
-  plt.figure(facecolor='#AAAAAA')
-  plt.pie(cnt.values(), labels=cnt.keys())
-  plt.title(types)
-  plt.legend()
-  plt.show()
 
+# %% binary variables for very low variance features
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.feature_extraction import DictVectorizer
+
+var_data = raw_dtrain.copy()
+def label2Num(*args):
+  lis = args[0] if isinstance(args[0],list) else [args[0]]
+  for field in lis:
+    uniq = var_data[field].unique()
+    trans = dict([(uniq[i],i) for i in range(len(uniq))])
+    var_data[field] = var_data[field].transform(lambda x: trans[x])
+
+test_list = ['MSZoning','Street','Alley','LotShape','LandContour','Utilities','LotConfig','LandSlope','Condition1','Condition2','BldgType','HouseStyle','RoofStyle','RoofMatl','MasVnrType','ExterQual','ExterCond','Foundation','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2','Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','FireplaceQu','GarageType','GarageFinish','GarageQual','PoolQC','Fence','MiscFeature','SaleType','SaleCondition']
+label2Num(test_list)
+# v = DictVectorizer(sparse=False)
+# X = v.fit_transform(raw_dtrain['Condition1'])
+# print(v.get_feature_names())
+
+# data = np.array(raw_dtrain['Condition2']).reshape(-1,1)
+data = var_data[test_list]
+sel = VarianceThreshold(0.01)
+sel_value = sel.fit_transform(data)
+
+sel.variances_
 # %%
-# sort by value intervals
-def plotIntervals(types):
-  src = (data[types]).tolist()
-  st = {'max': max(src), 'min': min(src)}
-  num_intv = 5
-  interval = (st['max'] - st['min'])*1.0/num_intv
 
-  # print(st, interval)
-
-  cnt = collections.Counter()
-  na_count = 0
-  for i in src:
-    if math.isnan(i):
-      na_count += 1
-      continue
-    cnt[math.floor((i-st['min'])/interval)] += 1
-
-
-  # sort keys
-  od = collections.OrderedDict(sorted(cnt.items()))
-  # print(od)
-
-  explode = [0.5 for i in od.keys()]
-  labels = [str(round((i)*interval+st['min']))+'-'+str(round((i+1)*interval+st['min'])) for i in od.keys()]  
-
-  if na_count > 0:
-    labels.append('NA')
-    od.update({'NA' : na_count})
-
-  plt.figure(facecolor='#AAAAAA')
-  plt.title(types)
-  plt.pie(od.values(), labels=labels, labeldistance=1.1)
-  plt.legend()
-  plt.show()
-
-# %%
-def scatterPlot(typeA, typeB):
-  src1 = (data[typeA]).tolist()
-  src2 = (data[typeB]).tolist()
-
-  plt.rcParams.update({'font.size': 15})
-  plt.figure(facecolor="#AAAAAA", figsize=(10,10))
-  plt.title(typeA + ' VS ' + typeB)
-  plt.xlabel(typeA)
-  plt.ylabel(typeB)
-  plt.scatter(src1, src2)
-  plt.show()
+orders = np.argsort(sel.variances_)
+np.sort(sel.variances_, order=orders)
 
 # %%
 
-for i in ['Neighborhood']:
-  plotCategory(i)
+var_data = pd.DataFrame({'x': test_list, 'y': sel.variances_})
+sf = var_data.sort_values(by='y', ascending=False)['x']
+var_data['x'] = pd.Categorical(var_data['x'], categories=sf.values, ordered=True)
+# data = data.reset_index(drop=True)
 
+gg = (ggplot(var_data)
+  + geom_col(aes(x='x',y='y'))
+  + theme(axis_text_x=element_text(rotation=70, ha="right"))
+)
 
-# for i in ['Neighborhood']:
-#   plotIntervals(i)
-
-# for i in data.dtypes.keys().tolist():
-#   try:
-#     scatterPlot('SalePrice', i)
-#   except:
-#     pass
-
-
+print(gg)
 # %%
+sf.values
+
+
+
+
+
+
+
+
+
+
+
+
+
+

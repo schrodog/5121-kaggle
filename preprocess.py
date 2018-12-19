@@ -1,12 +1,9 @@
 # %%
 import numpy as np
-from sklearn.model_selection import train_test_split
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-import collections
-import numpy as np
-import pandas as pd
+# import seaborn as sns
+# import collections
 from plotnine import *
 from sklearn.feature_selection import VarianceThreshold, SelectKBest
 from scipy.stats import pearsonr
@@ -37,50 +34,6 @@ def mics(x, y):
 
 raw_dtrain = pd.read_csv('data/train.csv')
 raw_dtest = pd.read_csv('data/test.csv')
-
-# %%
-
-# %% fill missing value
-
-# data = raw_dtrain.loc[np.invert(pd.isnull(raw_dtrain['LotFrontage']))]
-# data['MSSubClass'] = data['MSSubClass'].apply(str)
-# %%
-
-# (ggplot(data)
-#   # + geom_point(aes(x='MasVnrType', y='LotArea'))
-#   + geom_bar(aes(x='MasVnrType'))
-# )
-
-# %%
-
-print(raw_dtrain['MiscVal'].describe())
-# %%
-
-np.count_nonzero(raw_dtrain['MiscVal'] == 0)
-# %%
-
-types = 'GarageAge'
-data = raw_dtrain
-# data = raw_dtrain[raw_dtrain['GarageAge'] >= 0]
-
-gg = (ggplot(data, aes('MiscVal'))
-  # + geom_point()
-  # + geom_bar()
-  # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
-  # + geom_point()
-  + geom_histogram(binwidth=0.1)
-  # + facet_wrap('MoSold')
-  # + scale_y_continuous(breaks=range(1850, 2020, 10) )
-  # + coord_cartesian(ylim=(1900,2010))
-  + theme(axis_text_x=element_text(rotation=0, ha="right"))
-)
-
-print(gg)
-# gg.save('outputs/month_price.pdf')
-
-# %%
-print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
-
 
 # %% fill missing values
 
@@ -146,88 +99,61 @@ raw_dtrain['HouseAge'] = pd.Series(HouseAge)
 raw_dtrain['Oldness'] = pd.Series(Oldness)
 raw_dtrain['GarageAge'] = pd.Series(GarageAge)
 # %% drop features
+raw_dtrain.drop(['CentralAir', 'PoolQC', 'Condition2', 'RoofMatl', 'Street', 'Utilities', 'MiscFeature'], inplace=True)
 
-var_data = raw_dtrain.copy()
-def label2Num(*args):
-  lis = args[0] if isinstance(args[0],list) else [args[0]]
-  for field in lis:
-    uniq = var_data[field].unique()
-    trans = dict([(uniq[i],i) for i in range(len(uniq))])
-    var_data[field] = var_data[field].transform(lambda x: trans[x])
-
-# %% binary variables for very low variance features
-from sklearn.feature_selection import VarianceThreshold
-from sklearn.feature_extraction import DictVectorizer
-
-test_list = ['MSZoning','Street','Alley','LotShape','LandContour','Utilities','LotConfig','LandSlope','Condition1','Condition2','BldgType','HouseStyle','RoofStyle','RoofMatl','MasVnrType','ExterQual','ExterCond','Foundation','BsmtQual','BsmtCond','BsmtExposure','BsmtFinType1','BsmtFinType2','Heating','HeatingQC','CentralAir','Electrical','KitchenQual','Functional','FireplaceQu','GarageType','GarageFinish','GarageQual','PoolQC','Fence','MiscFeature','SaleType','SaleCondition']
-label2Num(test_list)
-# v = DictVectorizer(sparse=False)
-# X = v.fit_transform(raw_dtrain['Condition1'])
-# print(v.get_feature_names())
-
-# data = np.array(raw_dtrain['Condition2']).reshape(-1,1)
-data = var_data[test_list]
-sel = VarianceThreshold(0.01)
-sel_value = sel.fit_transform(data)
-
-sel.variances_
-# %%
-
-orders = np.argsort(sel.variances_)
-np.sort(sel.variances_, order=orders)
-
-# %%
-
-var_data = pd.DataFrame({'x': test_list, 'y': sel.variances_})
-sf = var_data.sort_values(by='y', ascending=False)['x']
-var_data['x'] = pd.Categorical(var_data['x'], categories=sf.values, ordered=True)
-# data = data.reset_index(drop=True)
-
-gg = (ggplot(var_data)
-  + geom_col(aes(x='x',y='y'))
-  + theme(axis_text_x=element_text(rotation=70, ha="right"))
-)
-
-print(gg)
-# %%
-sf.values
 
 # %% label -> number
 
 # abc = pd.DataFrame({'x': ['a','b','c','c','a']})
 
-abc['x'] = abc['x'].transform(lambda x: mapping['b'][x])
-
 
 mapping = {
 # num -> label
-'MSSubClass': {20:'20',30:'30',40:'40',45:'45',50:'50',60:'60',70:'70',75:'75',80:'80',85:'85',90:'90',120:'120',150:'150',160:'160',180:'180',190:'190'},
+# 'MSSubClass': {20:'20',30:'30',40:'40',45:'45',50:'50',60:'60',70:'70',75:'75',80:'80',85:'85',90:'90',120:'120',150:'150',160:'160',180:'180',190:'190'},
 
 # label -> num
 'LotShape': {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 3},
+'GarageQual': {'Ex': }
 
-# multi label -> binary/tertiary
-'RoofStyle': {'Gable': 0, 'Flat':2, 'Gambrel':2, 'Hip': 1, 'Mansard':2, 'Shed':2},
-'LotShape': {'Reg':0, 'IR1':1, 'IR2':2, 'IR3':2},
-''
+# multi label -> binary
+'LandSlope': {'Gtl':0, 'Mod':1, 'Sev':1},
+'Heating': {'GasA':0, 'Floor':1, 'GasW':1, 'Grav':1, 'OthW':1, 'Wall':1},
+'Alley': {'Grvl':1, 'Pave':1, 'None':0},
+'Electrical': {'SBrkr':0, 'FuseA':1, 'FuseF':1, 'FuseP':1, 'Mix':1},
 
 # grouping
 'OverallQual': {1:0, 2:0, 3:0, 4:1, 5:1, 6:1, 7:2, 8:2, 9:2, 10:2},
-''
+'RoofStyle': {'Gable': 0, 'Flat':2, 'Gambrel':2, 'Hip': 1, 'Mansard':2, 'Shed':2},
+'LotShape': {'Reg':0, 'IR1':1, 'IR2':2, 'IR3':2},
+'MSZoning': {'RL':0, 'RM':1, 'FV':2, 'A':3, 'C':3, 'I':3, 'RH':3, 'RP':3},
+'Condition1': {'Norm': 0, 'Feedr':1, 'Artery':2, 'PosA':3, 'PosN':3, 'RRAe':3, 'RRAn':3, 'RRNe':3, 'RRNn':3},
+
 }
 
+# abc['x'] = abc['x'].transform(lambda x: mapping['b'][x])
+
+
+# %% One hot encoding
+onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseType','']
+
+pd.get_dummies(raw_dtrain[['SaleCondition', 'SaleType']])
 
 
 # %%
 
+test = pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
+test2 = pd.DataFrame({'c': ['a7','a8','a9'] })
 
+xx = pd.get_dummies(test['a'])
+xx[1]
 
+# %%
+for i in xx.columns:
+  test[i] = xx[i]
+# %%  
+test
 
-
-
-
-
-
+# %%
 
 
 
