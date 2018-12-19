@@ -156,17 +156,16 @@ raw_dtrain['TotalSF'] = pd.Series(raw_dtrain['1stFlrSF'] + raw_dtrain['2ndFlrSF'
 
 
 # One hot encoding
-onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseStyle','RoofStyle','Exterior1st','Exterior2nd','MasVnrType','Foundation','GarageType','MoSold','YrSold','SaleType','SaleCondition']
+onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseStyle','RoofStyle','Exterior1st','Exterior2nd','MasVnrType','Foundation','GarageType','MoSold','YrSold','SaleType','SaleCondition','LotConfig','LandContour']
 
 for field in onehot_fields:
-  onehot_mat = pd.get_dummies(raw_dtrain[field])
-  print(field)
-  for name in onehot_mat.columns:
-    raw_dtrain[field+'_'+str(name)] = onehot_mat[name]
-
+  # onehot_mat = pd.get_dummies(raw_dtrain[field])
+  # print(field)
+  # for name in onehot_mat.columns:
+  #   raw_dtrain[field+'_'+str(name)] = onehot_mat[name]
+  raw_dtrain.drop(onehot_fields , inplace=True, axis=1)
 
 # %%
-
 
 
 

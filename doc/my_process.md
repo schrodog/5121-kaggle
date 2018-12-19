@@ -97,9 +97,6 @@ Neighborhood -> 0-4   {use KMeans to group, 5 is best}
 ### OneHot Encoding
 Integer Encoding: for field with natural ordering, comparable
 OneHot Encoding: no apparent ordering
-
-
-
 - discover month more house sold, price inverse with sold count
 - price,count ~ MSSubClass
 
