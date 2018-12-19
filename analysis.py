@@ -21,17 +21,18 @@ np.count_nonzero(raw_dtrain['3SsnPorch'] == 0)
 # types = 'GarageAge'
 # raw_dtrain[['ExterQual','ExterCond','Id']].groupby(['ExterQual','ExterCond']).count()
 
-data = raw_dtrain[raw_dtrain['BsmtUnfSF'] >= 0]
+data = raw_dtrain[raw_dtrain['PoolArea'] >= 0]
+# %%
 
 # data = raw_dtrain[raw_dtrain['MiscVal'] > 0]
 
-gg = (ggplot(data, aes('1stFlrSF'))
-  # + geom_point()
+gg = (ggplot(data, aes(x='PavedDrive',y='SalePrice'))
+  + geom_point()
   # + geom_col()
   # + geom_bar()
   # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
   # + geom_point()
-  + geom_histogram(binwidth=100)
+  # + geom_histogram(binwidth=10)
   # + facet_wrap('Neighborhood')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
   # + coord_cartesian(ylim=(1900,2010))

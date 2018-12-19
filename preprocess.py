@@ -17,28 +17,28 @@ import socket; socket.gethostname()
 
 # %%
 
-def mic(x,y):
-  m = MINE()
-  m.compute_score(x,y)
-  print(m.mic())
-  return (m.mic(), 0.5)
+# def mic(x,y):
+#   m = MINE()
+#   m.compute_score(x,y)
+#   print(m.mic())
+#   return (m.mic(), 0.5)
 
-def pear_pa(x, y):
-  ret_temp = map(lambda x: pearsonr(x, y), x.T)
-  return [i[0] for i in ret_temp], [i[1] for i in ret_temp]
+# def pear_pa(x, y):
+#   ret_temp = map(lambda x: pearsonr(x, y), x.T)
+#   return [i[0] for i in ret_temp], [i[1] for i in ret_temp]
 
 
-def mics(x, y):
-  temp = map(lambda x: mic(x,y), x.T)
-  return [i[0] for i in temp], [i[1] for i in temp]
+# def mics(x, y):
+#   temp = map(lambda x: mic(x,y), x.T)
+#   return [i[0] for i in temp], [i[1] for i in temp]
 
 raw_dtrain = pd.read_csv('data/train.csv')
 raw_dtest = pd.read_csv('data/test.csv')
 
-# %% fill missing values
+# fill missing values
 
 # recover 'NA' type
-none_type_word = "None"
+none_type_word = "NA"
 
 raw_dtrain['Alley'].fillna(none_type_word, inplace=True)
 raw_dtrain['FireplaceQu'].fillna(none_type_word, inplace=True)
@@ -69,15 +69,63 @@ avg_data = raw_dtrain['LotFrontage'].groupby(raw_dtrain['Neighborhood']).median(
 null_lot = raw_dtrain['LotFrontage'].isnull()
 raw_dtrain['LotFrontage'][null_lot] = raw_dtrain['Neighborhood'][null_lot].map(lambda x: avg_data[x])
 
+# drop features
+raw_dtrain.drop(['CentralAir', 'PoolQC', 'Condition2', 'RoofMatl', 'Street', 'Utilities', 'MiscFeature'], inplace=True, axis=1)
+
+# label mapping
+
+transformation_matrix = {
+# label -> num (ordered)
+'ExterQual': {'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'ExterCond': {'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'BsmtQual': {'NA':0, 'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'BsmtCond': {'NA':0, 'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'BsmtExposure': {'NA':0, 'No':1, 'Mn':2, 'Av':3, 'Gd':4},
+'BsmtFinType1': {'NA':0, 'Unf':1, 'LwQ':2, 'Rec':3, 'BLQ':4, 'ALQ':5, 'GLQ':6},
+'BsmtFinType2': {'NA':0, 'Unf':1, 'LwQ':2, 'Rec':3, 'BLQ':4, 'ALQ':5, 'GLQ':6},
+'HeatingQC': {'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'KitchenQual': {'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'Functional': {'Sal':0, 'Sev':1, 'Maj2':2, 'Maj1':3, 'Mod':4, 'Min2':5, 'Min1':6, 'Typ':7},
+'FireplaceQu': {'NA':0, 'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'GarageFinish': {'NA':0, 'Unf':1, 'RFn':2, 'Fin':3},
+'GarageQual': {'NA':0, 'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'GarageCond': {'NA':0, 'Po':1, 'Fa':2, 'TA':3, 'Gd':4, 'Ex':5},
+'PavedDrive': {'N':0, 'P':1, 'Y':2},
+'Fence': {'NA':0, 'MnWw':1, 'GdWo':2, 'MnPrv':3, 'GdPrv':4},
+
+# multi label -> binary
+'LandSlope': {'Gtl':0, 'Mod':1, 'Sev':1},
+'Heating': {'GasA':0, 'Floor':1, 'GasW':1, 'Grav':1, 'OthW':1, 'Wall':1},
+'Alley': {'Grvl':1, 'Pave':1, 'NA':0},
+'Electrical': {'SBrkr':0, 'FuseA':1, 'FuseF':1, 'FuseP':1, 'Mix':1}, #Sbrkr error
+
+# grouping
+'LotShape': {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 2},
+'RoofStyle': {'Gable': 0, 'Flat':2, 'Gambrel':2, 'Hip': 1, 'Mansard':2, 'Shed':2},
+'LotShape': {'Reg':0, 'IR1':1, 'IR2':2, 'IR3':2},
+'MSZoning': {'RL':0, 'RM':1, 'FV':2, 'A':3, 'C':3, 'I':3, 'RH':3, 'RP':3},
+'Condition1': {'Norm': 0, 'Feedr':1, 'Artery':2, 'PosA':3, 'PosN':3, 'RRAe':3, 'RRAn':3, 'RRNe':3, 'RRNn':3},
+'Neighborhood': {'Blmngtn': 2,'Blueste': 3,'BrDale': 2,'BrkSide': 0,'ClearCr': 1,'CollgCr': 1,'Crawfor': 0,'Edwards': 1,'Gilbert': 0,'GrnHill': 3,'IDOTRR': 0,'Landmrk': 2,'MeadowV': 4,'Mitchel': 0,'NAmes': 0,'NPkVill': 2,'NWAmes': 2,'NoRidge': 2,'NridgHt': 2,'OldTown': 0,'SWISU': 3,'Sawyer': 1,'SawyerW': 1,'Somerst': 2,'StoneBr': 2,'Timber': 3,'Veenker': 2}
+}
+# correct error
+raw_dtrain['Electrical'] = raw_dtrain['Electrical'].transform(lambda x: 'SBrkr' if x=='Sbrkr' else x )
+raw_dtrain['MSZoning'] = raw_dtrain['MSZoning'].transform(lambda x: 'C' if x=='C (all)' else x )
+
+for field in transformation_matrix:
+  raw_dtrain[field] = raw_dtrain[field].transform(lambda x: transformation_matrix[field][x] )
+
+raw_dtrain['MiscVal'] = raw_dtrain['MiscVal'].transform(lambda x: 1 if x>0 else 0)
 
 # %% new features
 
 # how many years after remod when sold
-RemodAge = raw_dtrain['YrSold'] - raw_dtrain['YearRemodAdd']
+raw_dtrain['RemodAge'] = pd.Series(raw_dtrain['YrSold'] - raw_dtrain['YearRemodAdd'])
 # years after built when sold
-HouseAge = raw_dtrain['YrSold'] - raw_dtrain['YearBuilt']
+raw_dtrain['HouseAge'] = pd.Series(raw_dtrain['YrSold'] - raw_dtrain['YearBuilt'])
+# %%
+
 # how old house is
-Oldness = HouseAge*0.5 + RemodAge
+raw_dtrain['Oldness'] = pd.Series(raw_dtrain['HouseAge']*0.5 + raw_dtrain['RemodAge'])
 # how many years garage built
 def getGarageAge():
   res = []
@@ -91,72 +139,33 @@ def getGarageAge():
       res.append(sold - max(garage, remod))
   return np.array(res)
 
-GarageAge = getGarageAge()
+# grade
+raw_dtrain['GarageAge'] = pd.Series(getGarageAge())
+raw_dtrain['OverallValue'] = pd.Series(raw_dtrain['OverallQual'] + raw_dtrain['OverallCond'])
+raw_dtrain['GarageGrade'] = pd.Series(raw_dtrain['GarageQual'] + raw_dtrain['GarageCond'])
+raw_dtrain['ExterValue'] = pd.Series(raw_dtrain['ExterQual'] + raw_dtrain['ExterCond'])
+raw_dtrain['KitchenValue'] = pd.Series(raw_dtrain['KitchenAbvGr'] * raw_dtrain['KitchenQual'])
+raw_dtrain['FireplaceValue'] = pd.Series(raw_dtrain['Fireplaces'] * raw_dtrain['FireplaceQu'])
+raw_dtrain['GarageValue'] = pd.Series(raw_dtrain['GarageArea'] * raw_dtrain['GarageQual'] * raw_dtrain['GarageFinish'])
+raw_dtrain['BsmtValue'] = pd.Series(raw_dtrain['BsmtFinType1']*raw_dtrain['BsmtFinSF1'] + raw_dtrain['BsmtFinType2']*raw_dtrain['BsmtFinSF2'] + 0.2*raw_dtrain['BsmtUnfSF'] + raw_dtrain['BsmtCond']*raw_dtrain['BsmtQual']*raw_dtrain['TotalBsmtSF']*0.3)
+raw_dtrain['BathValue'] = raw_dtrain['BsmtFullBath'] + 0.5*raw_dtrain['BsmtHalfBath'] + 2*raw_dtrain['FullBath'] + 1.5*raw_dtrain['HalfBath']
+
+# total area
+raw_dtrain['TotalPorchSF'] = pd.Series(raw_dtrain['OpenPorchSF'] + raw_dtrain['EnclosedPorch'] + raw_dtrain['3SsnPorch'] + raw_dtrain['ScreenPorch'])
+raw_dtrain['TotalSF'] = pd.Series(raw_dtrain['1stFlrSF'] + raw_dtrain['2ndFlrSF'] + raw_dtrain['GrLivArea'] + 0.4*(raw_dtrain['LowQualFinSF'] + raw_dtrain['TotalBsmtSF']) + 0.1*(raw_dtrain['WoodDeckSF'] + raw_dtrain['TotalPorchSF'] + raw_dtrain['PoolArea'] + raw_dtrain['LotArea'] + raw_dtrain['GarageArea']) + raw_dtrain['LotArea'])
 
 
-raw_dtrain['RemodAge'] = pd.Series(RemodAge)
-raw_dtrain['HouseAge'] = pd.Series(HouseAge)
-raw_dtrain['Oldness'] = pd.Series(Oldness)
-raw_dtrain['GarageAge'] = pd.Series(GarageAge)
-# %% drop features
-raw_dtrain.drop(['CentralAir', 'PoolQC', 'Condition2', 'RoofMatl', 'Street', 'Utilities', 'MiscFeature'], inplace=True)
+# One hot encoding
+onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseStyle','RoofStyle','Exterior1st','Exterior2nd','MasVnrType','Foundation','GarageType','MoSold','YrSold','SaleType','SaleCondition']
 
-
-# %% label -> number
-
-# abc = pd.DataFrame({'x': ['a','b','c','c','a']})
-
-
-mapping = {
-# num -> label
-# 'MSSubClass': {20:'20',30:'30',40:'40',45:'45',50:'50',60:'60',70:'70',75:'75',80:'80',85:'85',90:'90',120:'120',150:'150',160:'160',180:'180',190:'190'},
-
-# label -> num
-'LotShape': {'Reg': 0, 'IR1': 1, 'IR2': 2, 'IR3': 3},
-'GarageQual': {'Ex': }
-
-# multi label -> binary
-'LandSlope': {'Gtl':0, 'Mod':1, 'Sev':1},
-'Heating': {'GasA':0, 'Floor':1, 'GasW':1, 'Grav':1, 'OthW':1, 'Wall':1},
-'Alley': {'Grvl':1, 'Pave':1, 'None':0},
-'Electrical': {'SBrkr':0, 'FuseA':1, 'FuseF':1, 'FuseP':1, 'Mix':1},
-
-# grouping
-'OverallQual': {1:0, 2:0, 3:0, 4:1, 5:1, 6:1, 7:2, 8:2, 9:2, 10:2},
-'RoofStyle': {'Gable': 0, 'Flat':2, 'Gambrel':2, 'Hip': 1, 'Mansard':2, 'Shed':2},
-'LotShape': {'Reg':0, 'IR1':1, 'IR2':2, 'IR3':2},
-'MSZoning': {'RL':0, 'RM':1, 'FV':2, 'A':3, 'C':3, 'I':3, 'RH':3, 'RP':3},
-'Condition1': {'Norm': 0, 'Feedr':1, 'Artery':2, 'PosA':3, 'PosN':3, 'RRAe':3, 'RRAn':3, 'RRNe':3, 'RRNn':3},
-
-}
-
-# abc['x'] = abc['x'].transform(lambda x: mapping['b'][x])
-
-
-# %% One hot encoding
-onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseType','']
-
-pd.get_dummies(raw_dtrain[['SaleCondition', 'SaleType']])
+for field in onehot_fields:
+  onehot_mat = pd.get_dummies(raw_dtrain[field])
+  print(field)
+  for name in onehot_mat.columns:
+    raw_dtrain[field+'_'+str(name)] = onehot_mat[name]
 
 
 # %%
-
-test = pd.DataFrame({'a': [1,2,3], 'b': [4,5,6]})
-test2 = pd.DataFrame({'c': ['a7','a8','a9'] })
-
-xx = pd.get_dummies(test['a'])
-xx[1]
-
-# %%
-for i in xx.columns:
-  test[i] = xx[i]
-# %%  
-test
-
-# %%
-
-
-
 
 
 
