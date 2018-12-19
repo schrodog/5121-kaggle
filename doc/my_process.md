@@ -2,7 +2,6 @@
 { } = explanation
 
 ## Data Cleaning
-remove Id, SalePrice
 - remove outlier
 lotFrontage, LotArea, MasVnrArea
 - where data range exist only in training, not testing data

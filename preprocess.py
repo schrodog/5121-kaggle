@@ -2,20 +2,18 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-# import seaborn as sns
-# import collections
 from plotnine import *
 from sklearn.feature_selection import VarianceThreshold, SelectKBest
 from scipy.stats import pearsonr
 from minepy import MINE
-# % matplotlib tk
+
 pd.options.mode.chained_assignment = None
 np.set_printoptions(precision=5, suppress=True)
 
 # %%
-import socket; socket.gethostname()
+# import socket; socket.gethostname()
 
-# %%
+#
 
 # def mic(x,y):
 #   m = MINE()
@@ -35,42 +33,48 @@ import socket; socket.gethostname()
 raw_dtrain = pd.read_csv('data/train.csv')
 raw_dtest = pd.read_csv('data/test.csv')
 
+SalePrice = raw_dtrain['SalePrice']
+raw_dtrain.drop(['Id','SalePrice'] , inplace=True, axis=1)
+raw_dtest.drop(['Id'] , inplace=True, axis=1)
+
+combined_df = pd.concat([raw_dtrain, raw_dtest], keys=['train','test'])
+
 # fill missing values
 
 # recover 'NA' type
 none_type_word = "NA"
 
-raw_dtrain['Alley'].fillna(none_type_word, inplace=True)
-raw_dtrain['FireplaceQu'].fillna(none_type_word, inplace=True)
-raw_dtrain['PoolQC'].fillna(none_type_word, inplace=True)
-raw_dtrain['BsmtQual'].fillna(none_type_word, inplace=True)
-raw_dtrain['MiscFeature'].fillna(none_type_word, inplace=True)
-raw_dtrain['Fence'].fillna(none_type_word, inplace=True)
-raw_dtrain['MiscFeature'].fillna(none_type_word, inplace=True)
+combined_df['Alley'].fillna(none_type_word, inplace=True)
+combined_df['FireplaceQu'].fillna(none_type_word, inplace=True)
+combined_df['PoolQC'].fillna(none_type_word, inplace=True)
+combined_df['BsmtQual'].fillna(none_type_word, inplace=True)
+combined_df['MiscFeature'].fillna(none_type_word, inplace=True)
+combined_df['Fence'].fillna(none_type_word, inplace=True)
+combined_df['MiscFeature'].fillna(none_type_word, inplace=True)
 
-raw_dtrain['GarageFinish'].fillna(none_type_word, inplace=True)
-raw_dtrain['GarageType'].fillna(none_type_word, inplace=True)
-raw_dtrain['GarageQual'].fillna(none_type_word, inplace=True)
-raw_dtrain['GarageCond'].fillna(none_type_word, inplace=True)
-raw_dtrain['GarageType'].fillna(none_type_word, inplace=True)
-raw_dtrain['GarageYrBlt'].fillna(-1, inplace=True)
+combined_df['GarageFinish'].fillna(none_type_word, inplace=True)
+combined_df['GarageType'].fillna(none_type_word, inplace=True)
+combined_df['GarageQual'].fillna(none_type_word, inplace=True)
+combined_df['GarageCond'].fillna(none_type_word, inplace=True)
+combined_df['GarageType'].fillna(none_type_word, inplace=True)
+combined_df['GarageYrBlt'].fillna(-1, inplace=True)
 
-raw_dtrain['BsmtCond'].fillna(none_type_word, inplace=True)
-raw_dtrain['BsmtQual'].fillna(none_type_word, inplace=True)
-raw_dtrain['BsmtExposure'].fillna('No', inplace=True)
-raw_dtrain['BsmtFinType1'].fillna('Unf', inplace=True)
-raw_dtrain['BsmtFinType2'].fillna('Unf', inplace=True)
+combined_df['BsmtCond'].fillna(none_type_word, inplace=True)
+combined_df['BsmtQual'].fillna(none_type_word, inplace=True)
+combined_df['BsmtExposure'].fillna('No', inplace=True)
+combined_df['BsmtFinType1'].fillna('Unf', inplace=True)
+combined_df['BsmtFinType2'].fillna('Unf', inplace=True)
 
-raw_dtrain['MasVnrType'].fillna('None', inplace=True)
-raw_dtrain['MasVnrArea'].fillna(0, inplace=True)
-raw_dtrain['Electrical'].fillna('Sbrkr', inplace=True)
+combined_df['MasVnrType'].fillna('None', inplace=True)
+combined_df['MasVnrArea'].fillna(0, inplace=True)
+combined_df['Electrical'].fillna('Sbrkr', inplace=True)
 
-avg_data = raw_dtrain['LotFrontage'].groupby(raw_dtrain['Neighborhood']).median()
-null_lot = raw_dtrain['LotFrontage'].isnull()
-raw_dtrain['LotFrontage'][null_lot] = raw_dtrain['Neighborhood'][null_lot].map(lambda x: avg_data[x])
+avg_data = combined_df['LotFrontage'].groupby(combined_df['Neighborhood']).median()
+null_lot = combined_df['LotFrontage'].isnull()
+combined_df['LotFrontage'][null_lot] = combined_df['Neighborhood'][null_lot].map(lambda x: avg_data[x])
 
 # drop features
-raw_dtrain.drop(['CentralAir', 'PoolQC', 'Condition2', 'RoofMatl', 'Street', 'Utilities', 'MiscFeature'], inplace=True, axis=1)
+combined_df.drop(['CentralAir', 'PoolQC', 'Condition2', 'RoofMatl', 'Street', 'Utilities', 'MiscFeature'], inplace=True, axis=1)
 
 # label mapping
 
@@ -108,31 +112,31 @@ transformation_matrix = {
 'Neighborhood': {'Blmngtn': 2,'Blueste': 3,'BrDale': 2,'BrkSide': 0,'ClearCr': 1,'CollgCr': 1,'Crawfor': 0,'Edwards': 1,'Gilbert': 0,'GrnHill': 3,'IDOTRR': 0,'Landmrk': 2,'MeadowV': 4,'Mitchel': 0,'NAmes': 0,'NPkVill': 2,'NWAmes': 2,'NoRidge': 2,'NridgHt': 2,'OldTown': 0,'SWISU': 3,'Sawyer': 1,'SawyerW': 1,'Somerst': 2,'StoneBr': 2,'Timber': 3,'Veenker': 2}
 }
 # correct error
-raw_dtrain['Electrical'] = raw_dtrain['Electrical'].transform(lambda x: 'SBrkr' if x=='Sbrkr' else x )
-raw_dtrain['MSZoning'] = raw_dtrain['MSZoning'].transform(lambda x: 'C' if x=='C (all)' else x )
+combined_df['Electrical'] = combined_df['Electrical'].transform(lambda x: 'SBrkr' if x=='Sbrkr' else x )
+combined_df['MSZoning'] = combined_df['MSZoning'].transform(lambda x: 'C' if x=='C (all)' else x )
 
 for field in transformation_matrix:
-  raw_dtrain[field] = raw_dtrain[field].transform(lambda x: transformation_matrix[field][x] )
+  print(field)
+  combined_df[field] = combined_df[field].transform(lambda x: transformation_matrix[field][x] )
 
-raw_dtrain['MiscVal'] = raw_dtrain['MiscVal'].transform(lambda x: 1 if x>0 else 0)
+combined_df['MiscVal'] = combined_df['MiscVal'].transform(lambda x: 1 if x>0 else 0)
 
-# %% new features
+# new features
 
 # how many years after remod when sold
-raw_dtrain['RemodAge'] = pd.Series(raw_dtrain['YrSold'] - raw_dtrain['YearRemodAdd'])
+combined_df['RemodAge'] = pd.Series(combined_df['YrSold'] - combined_df['YearRemodAdd'])
 # years after built when sold
-raw_dtrain['HouseAge'] = pd.Series(raw_dtrain['YrSold'] - raw_dtrain['YearBuilt'])
-# %%
+combined_df['HouseAge'] = pd.Series(combined_df['YrSold'] - combined_df['YearBuilt'])
 
 # how old house is
-raw_dtrain['Oldness'] = pd.Series(raw_dtrain['HouseAge']*0.5 + raw_dtrain['RemodAge'])
+combined_df['Oldness'] = pd.Series(combined_df['HouseAge']*0.5 + combined_df['RemodAge'])
 # how many years garage built
 def getGarageAge():
   res = []
-  for i in range(raw_dtrain.shape[0]):
-    sold = raw_dtrain['YrSold'][i]
-    garage = raw_dtrain['GarageYrBlt'][i]
-    remod = raw_dtrain['YearRemodAdd'][i]
+  for i in range(combined_df.shape[0]):
+    sold = combined_df['YrSold'][i]
+    garage = combined_df['GarageYrBlt'][i]
+    remod = combined_df['YearRemodAdd'][i]
     if garage == -1:
       res.append(-1)
     else:
@@ -140,32 +144,63 @@ def getGarageAge():
   return np.array(res)
 
 # grade
-raw_dtrain['GarageAge'] = pd.Series(getGarageAge())
-raw_dtrain['OverallValue'] = pd.Series(raw_dtrain['OverallQual'] + raw_dtrain['OverallCond'])
-raw_dtrain['GarageGrade'] = pd.Series(raw_dtrain['GarageQual'] + raw_dtrain['GarageCond'])
-raw_dtrain['ExterValue'] = pd.Series(raw_dtrain['ExterQual'] + raw_dtrain['ExterCond'])
-raw_dtrain['KitchenValue'] = pd.Series(raw_dtrain['KitchenAbvGr'] * raw_dtrain['KitchenQual'])
-raw_dtrain['FireplaceValue'] = pd.Series(raw_dtrain['Fireplaces'] * raw_dtrain['FireplaceQu'])
-raw_dtrain['GarageValue'] = pd.Series(raw_dtrain['GarageArea'] * raw_dtrain['GarageQual'] * raw_dtrain['GarageFinish'])
-raw_dtrain['BsmtValue'] = pd.Series(raw_dtrain['BsmtFinType1']*raw_dtrain['BsmtFinSF1'] + raw_dtrain['BsmtFinType2']*raw_dtrain['BsmtFinSF2'] + 0.2*raw_dtrain['BsmtUnfSF'] + raw_dtrain['BsmtCond']*raw_dtrain['BsmtQual']*raw_dtrain['TotalBsmtSF']*0.3)
-raw_dtrain['BathValue'] = raw_dtrain['BsmtFullBath'] + 0.5*raw_dtrain['BsmtHalfBath'] + 2*raw_dtrain['FullBath'] + 1.5*raw_dtrain['HalfBath']
+combined_df['GarageAge'] = pd.Series(getGarageAge())
+combined_df['OverallValue'] = pd.Series(combined_df['OverallQual'] + combined_df['OverallCond'])
+combined_df['GarageGrade'] = pd.Series(combined_df['GarageQual'] + combined_df['GarageCond'])
+combined_df['ExterValue'] = pd.Series(combined_df['ExterQual'] + combined_df['ExterCond'])
+combined_df['KitchenValue'] = pd.Series(combined_df['KitchenAbvGr'] * combined_df['KitchenQual'])
+combined_df['FireplaceValue'] = pd.Series(combined_df['Fireplaces'] * combined_df['FireplaceQu'])
+combined_df['GarageValue'] = pd.Series(combined_df['GarageArea'] * combined_df['GarageQual'] * combined_df['GarageFinish'])
+combined_df['BsmtValue'] = pd.Series(combined_df['BsmtFinType1']*combined_df['BsmtFinSF1'] + combined_df['BsmtFinType2']*combined_df['BsmtFinSF2'] + 0.2*combined_df['BsmtUnfSF'] + combined_df['BsmtCond']*combined_df['BsmtQual']*combined_df['TotalBsmtSF']*0.3)
+combined_df['BathValue'] = combined_df['BsmtFullBath'] + 0.5*combined_df['BsmtHalfBath'] + 2*combined_df['FullBath'] + 1.5*combined_df['HalfBath']
 
 # total area
-raw_dtrain['TotalPorchSF'] = pd.Series(raw_dtrain['OpenPorchSF'] + raw_dtrain['EnclosedPorch'] + raw_dtrain['3SsnPorch'] + raw_dtrain['ScreenPorch'])
-raw_dtrain['TotalSF'] = pd.Series(raw_dtrain['1stFlrSF'] + raw_dtrain['2ndFlrSF'] + raw_dtrain['GrLivArea'] + 0.4*(raw_dtrain['LowQualFinSF'] + raw_dtrain['TotalBsmtSF']) + 0.1*(raw_dtrain['WoodDeckSF'] + raw_dtrain['TotalPorchSF'] + raw_dtrain['PoolArea'] + raw_dtrain['LotArea'] + raw_dtrain['GarageArea']) + raw_dtrain['LotArea'])
+combined_df['TotalPorchSF'] = pd.Series(combined_df['OpenPorchSF'] + combined_df['EnclosedPorch'] + combined_df['3SsnPorch'] + combined_df['ScreenPorch'])
+combined_df['TotalSF'] = pd.Series(combined_df['1stFlrSF'] + combined_df['2ndFlrSF'] + combined_df['GrLivArea'] + 0.4*(combined_df['LowQualFinSF'] + combined_df['TotalBsmtSF']) + 0.1*(combined_df['WoodDeckSF'] + combined_df['TotalPorchSF'] + combined_df['PoolArea'] + combined_df['LotArea'] + combined_df['GarageArea']) + combined_df['LotArea'])
 
 
 # One hot encoding
 onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseStyle','RoofStyle','Exterior1st','Exterior2nd','MasVnrType','Foundation','GarageType','MoSold','YrSold','SaleType','SaleCondition','LotConfig','LandContour']
 
 for field in onehot_fields:
-  # onehot_mat = pd.get_dummies(raw_dtrain[field])
-  # print(field)
-  # for name in onehot_mat.columns:
-  #   raw_dtrain[field+'_'+str(name)] = onehot_mat[name]
-  raw_dtrain.drop(onehot_fields , inplace=True, axis=1)
+  onehot_mat = pd.get_dummies(combined_df[field])
+  for name in onehot_mat.columns:
+    combined_df[field+'_'+str(name)] = onehot_mat[name]
+
+combined_df.drop(onehot_fields , inplace=True, axis=1)
+# %%
+combined_df
+
+
 
 # %%
+from sklearn.preprocessing import RobustScaler
+
+transformer = RobustScaler().fit_transform(combined_df.values)
+# %%
+
+output_train = pd.DataFrame(transformer, columns=raw_dtrain.columns)
+output_train
+
+
+
+# %%
+
+# raw_dtrain.head(10)
+output_train.to_csv("result/new_train2.csv", index=False)
+
+
+# %%
+combined_df.info()
+# %%
+raw_dtrain.info()
+
+
+
+
+
+
+
 
 
 
