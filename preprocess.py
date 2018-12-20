@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from plotnine import *
-from sklearn.preprocessing import RobustScaler
-from sklearn.feature_selection import VarianceThreshold, SelectKBest
+from sklearn.preprocessing import RobustScaler, MinMaxScaler
+from sklearn.feature_selection import VarianceThreshold
 from scipy.stats import pearsonr
 from minepy import MINE
 
@@ -34,6 +34,7 @@ raw_dtrain = pd.read_csv('data/train.csv')
 raw_dtest = pd.read_csv('data/test.csv')
 
 SalePrice = raw_dtrain['SalePrice']
+Test_id = raw_dtest['Id']
 raw_dtrain.drop(['Id','SalePrice'] , inplace=True, axis=1)
 raw_dtest.drop(['Id'] , inplace=True, axis=1)
 
@@ -187,28 +188,24 @@ for field in onehot_fields:
 combined_df.drop(onehot_fields , inplace=True, axis=1)
 
 
-
 # Scaling
 train_data = combined_df[combined_df.index.labels[0] == 0].values
 test_data = combined_df[combined_df.index.labels[0] == 1].values
-
 
 trans_train = RobustScaler().fit_transform(train_data)
 trans_test = RobustScaler().fit_transform(test_data)
 
 output_train = pd.DataFrame(trans_train, columns=combined_df.columns)
-output_test = pd.DataFrame(trans_test , columns=combined_df.columns)
+output_train['SalePrice'] = pd.Series(np.log1p(SalePrice.values))
 
-output_train['SalePrice'] = pd.Series(SalePrice)
+output_test = pd.DataFrame(trans_test , columns=combined_df.columns)
+output_test['Id'] = pd.Series(Test_id)
 
 # output
 output_train.to_csv("result/new_train.csv", index=False)
 output_test.to_csv("result/new_test.csv", index=False)
-
-
-
-
-
+# %%
+output_test
 
 
 
