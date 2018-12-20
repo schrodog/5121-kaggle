@@ -7,7 +7,7 @@ lotFrontage, LotArea, MasVnrArea
 - where data range exist only in training, not testing data
 combine test & train dataset
 
-### find missing data, fill missing
+### find missing train data
 LotFrontage: plot median, mean; group by neighborhood
 Alley: 'NA' ??
 MasVnrType: most frequent
@@ -23,6 +23,25 @@ PoolQC: 'NA'
   {becoz poolArea=0 for all NA}
 MiscFeature,Fence: 'NA'
 GarageFinish, GarageType, GarageQual, GarageType: 'NA'
+
+### fill test data
+1459 records
+- missing values in train and test data are different
+      
+MSZoning        1455 [majority]
+Exterior1st     1458 [group by RoofMatl]
+Exterior2nd     1458 [group by RoofMatl]
+BsmtFinSF1      1458 [majority]
+BsmtFinSF2      1458 [majority]
+BsmtUnfSF       1458 [majority]
+TotalBsmtSF     1458 [majority]
+BsmtFullBath    1457 [group by FullBath, HalfBath]
+BsmtHalfBath    1457 [group by FullBath, HalfBath]
+KitchenQual     1458 [group by KitchenAbvGr]
+Functional      1457 [majority]
+GarageCars      1458 [group by GarageType]
+GarageArea      1458 [group by GarageType, take median]
+SaleType        1458 [majority]
 
 
 ## Feature engineering
@@ -115,6 +134,7 @@ MonthSaledMeanPrice, MSSubClassMeanPrice, NeighborPrice.. -> log(1+x)
 ## outlier
 - drop rows missing in test data
 exterior1st (imstucc,stone), ...
+
 
 
 

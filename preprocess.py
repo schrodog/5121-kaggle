@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from plotnine import *
+from sklearn.preprocessing import RobustScaler
 from sklearn.feature_selection import VarianceThreshold, SelectKBest
 from scipy.stats import pearsonr
 from minepy import MINE
@@ -10,7 +11,6 @@ from minepy import MINE
 pd.options.mode.chained_assignment = None
 np.set_printoptions(precision=5, suppress=True)
 
-# %%
 # import socket; socket.gethostname()
 
 #
@@ -38,10 +38,11 @@ raw_dtrain.drop(['Id','SalePrice'] , inplace=True, axis=1)
 raw_dtest.drop(['Id'] , inplace=True, axis=1)
 
 combined_df = pd.concat([raw_dtrain, raw_dtest], keys=['train','test'])
+# combined_df = raw_dtest
+
 
 # fill missing values
-
-# recover 'NA' type
+# fill training dataset
 none_type_word = "NA"
 
 combined_df['Alley'].fillna(none_type_word, inplace=True)
@@ -68,6 +69,23 @@ combined_df['BsmtFinType2'].fillna('Unf', inplace=True)
 combined_df['MasVnrType'].fillna('None', inplace=True)
 combined_df['MasVnrArea'].fillna(0, inplace=True)
 combined_df['Electrical'].fillna('Sbrkr', inplace=True)
+
+# fill testing dataset
+combined_df['MSZoning'].fillna('RL', inplace=True)
+combined_df['Exterior1st'].fillna('Plywood', inplace=True)
+combined_df['Exterior2nd'].fillna('Plywood', inplace=True)
+combined_df['BsmtFullBath'].fillna(0, inplace=True)
+combined_df['BsmtHalfBath'].fillna(0, inplace=True)
+combined_df['BsmtFinSF1'].fillna(0, inplace=True)
+combined_df['BsmtFinSF2'].fillna(0, inplace=True)
+combined_df['BsmtUnfSF'].fillna(0, inplace=True)
+combined_df['TotalBsmtSF'].fillna(0, inplace=True)
+combined_df['KitchenQual'].fillna('TA', inplace=True)
+combined_df['Functional'].fillna('Typ', inplace=True)
+combined_df['GarageCars'].fillna(1, inplace=True)
+combined_df['GarageArea'].fillna(384, inplace=True)
+combined_df['SaleType'].fillna('WD', inplace=True)
+
 
 avg_data = combined_df['LotFrontage'].groupby(combined_df['Neighborhood']).median()
 null_lot = combined_df['LotFrontage'].isnull()
@@ -116,7 +134,6 @@ combined_df['Electrical'] = combined_df['Electrical'].transform(lambda x: 'SBrkr
 combined_df['MSZoning'] = combined_df['MSZoning'].transform(lambda x: 'C' if x=='C (all)' else x )
 
 for field in transformation_matrix:
-  print(field)
   combined_df[field] = combined_df[field].transform(lambda x: transformation_matrix[field][x] )
 
 combined_df['MiscVal'] = combined_df['MiscVal'].transform(lambda x: 1 if x>0 else 0)
@@ -168,33 +185,25 @@ for field in onehot_fields:
     combined_df[field+'_'+str(name)] = onehot_mat[name]
 
 combined_df.drop(onehot_fields , inplace=True, axis=1)
-# %%
-combined_df
 
 
 
-# %%
-from sklearn.preprocessing import RobustScaler
-
-transformer = RobustScaler().fit_transform(combined_df.values)
-# %%
-
-output_train = pd.DataFrame(transformer, columns=raw_dtrain.columns)
-output_train
+# Scaling
+train_data = combined_df[combined_df.index.labels[0] == 0].values
+test_data = combined_df[combined_df.index.labels[0] == 1].values
 
 
+trans_train = RobustScaler().fit_transform(train_data)
+trans_test = RobustScaler().fit_transform(test_data)
 
-# %%
+output_train = pd.DataFrame(trans_train, columns=combined_df.columns)
+output_test = pd.DataFrame(trans_test , columns=combined_df.columns)
 
-# raw_dtrain.head(10)
-output_train.to_csv("result/new_train2.csv", index=False)
+output_train['SalePrice'] = pd.Series(SalePrice)
 
-
-# %%
-combined_df.info()
-# %%
-raw_dtrain.info()
-
+# output
+output_train.to_csv("result/new_train.csv", index=False)
+output_test.to_csv("result/new_test.csv", index=False)
 
 
 

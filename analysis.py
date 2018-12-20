@@ -19,21 +19,29 @@ np.count_nonzero(raw_dtrain['3SsnPorch'] == 0)
 # %%
 
 # types = 'GarageAge'
-# raw_dtrain[['ExterQual','ExterCond','Id']].groupby(['ExterQual','ExterCond']).count()
+a = raw_dtest[['SaleCondition','SaleType','MSSubClass']].groupby(['SaleCondition','SaleType']).median()
+print(a)
 
-data = raw_dtrain[raw_dtrain['PoolArea'] >= 0]
+# data = raw_dtrain[raw_dtrain['PoolArea'] >= 0]
+data = raw_dtest
 # %%
+# missing=['MSZoning', 'Exterior1st', 'Exterior2nd', 'BsmtFinSF1', 'BsmtFinSF2',
+#        'BsmtUnfSF', 'TotalBsmtSF', 'BsmtFullBath', 'BsmtHalfBath',
+#        'KitchenQual', 'Functional', 'GarageCars', 'GarageArea', 'SaleType']
 
+data[data['SaleType'].isna()]
+
+# %%
 # data = raw_dtrain[raw_dtrain['MiscVal'] > 0]
 
-gg = (ggplot(data, aes(x='PavedDrive',y='SalePrice'))
-  + geom_point()
+gg = (ggplot(data, aes('SaleType'))
+  # + geom_point()
   # + geom_col()
-  # + geom_bar()
+  + geom_bar()
   # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
   # + geom_point()
   # + geom_histogram(binwidth=10)
-  # + facet_wrap('Neighborhood')
+  # + facet_wrap('GarageType')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
   # + coord_cartesian(ylim=(1900,2010))
   # + theme(axis_text_x=element_text(rotation=0, ha="right"))
@@ -130,7 +138,10 @@ print(gg)
 # %%
 np.column_stack((data.index, kmeans.labels_))
 
+# %%
 
+combined_df.columns[combined_df.count() < 2919]
+# combined_df.info()
 
 
 
