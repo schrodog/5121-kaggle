@@ -2,7 +2,7 @@
 { } = explanation
 
 ## Data Cleaning
-- remove outlier
+### remove outlier
 lotFrontage, LotArea, MasVnrArea
 - where data range exist only in training, not testing data
 combine test & train dataset
@@ -119,25 +119,49 @@ OneHot Encoding: no apparent ordering
 - discover month more house sold, price inverse with sold count
 - price,count ~ MSSubClass
 
-- find important feature by XGBRegressor
-15 most import feature
-d^2, d^3, sqrt(d)
+## Scale features
+SalePrice -> log(1+x)
+all other features already become numbers => RobustScale
 
-- for boolean features, do not scatter and skewed
-use max scater, 95% quantile to scale data
-
-- transform skewed numeric features by taking log(feature+1)
-- make features more normal
-skewed > 0.75
-NeighborPrice, NeighborPrice-s2, NeighborPrice-s3 -> log(1+x)
-MonthSaledMeanPrice, MSSubClassMeanPrice, NeighborPrice.. -> log(1+x)
 
 ## outlier
-- drop rows missing in test data
+### exist in train, not test
+
+TotalSF > 100,000 [4]
+
+LotFrontage > 200
+LotArea > 100,000
+
+MasVnrArea > 1500
+
+1. drop rows missing in test data
 exterior1st (imstucc,stone), ...
 
+## important features
+### after restriction by XGBoost 
+OverallQual
+GrLivArea
+TotalSF
+GarageValue
+OverallValue
+BsmtValue
+HouseAge
+1stFlrSF
+TotalBsmtS
+Oldness
+LotFrontage
+TotalPorchSF
+GarageAre
+FireplaceValue
+LotArea
+GarageYrBlt
+BathValu
+ExterQual
+2ndFlrSF
+KitchenQual
 
-## most important features
+
+### by XGBoost
 LotFrontage
 GrLivArea
 TotalSF
@@ -175,10 +199,9 @@ MonthSaledMeanPrice
 MasVnrArea
 LotArea-S2
 
-## MINE
+### by MINE
 use MIC, (maximum information coefficient)
 
-['SalePrice', 0.9999951767650229],
 ['OverallQual', 0.5607558959551385],
 ['ExterQual', 0.4894627978060431],
 ['GarageValue', 0.4891427673261014],
@@ -229,7 +252,7 @@ use MIC, (maximum information coefficient)
 ['HalfBath', 0.19850549414199556],
 ['BsmtFinSF1', 0.19351804512526782]]
 
-
+- basically 2 groups overlap, so choose top 50
 
 
 

@@ -179,6 +179,10 @@ unorm_train = pd.DataFrame(train_data, columns=combined_df.columns)
 unorm_train['SalePrice'] = pd.Series(SalePrice.values)
 unorm_train.to_csv("result/unorm_train.csv", index=False)
 
+unorm_test = pd.DataFrame(test_data, columns=combined_df.columns)
+unorm_test['Id'] = pd.Series(Test_id)
+unorm_test.to_csv("result/unorm_test.csv", index=False)
+
 
 trans_train = RobustScaler().fit_transform(train_data)
 trans_test = RobustScaler().fit_transform(test_data)
@@ -189,29 +193,34 @@ output_train['SalePrice'] = pd.Series(np.log1p(SalePrice.values))
 output_test = pd.DataFrame(trans_test , columns=combined_df.columns)
 output_test['Id'] = pd.Series(Test_id)
 
+# %%
+
 # selected most important features
-important_features = [
-  'OverallQual', 'ExterQual', 'GarageValue',
+important_features = ['OverallQual', 'ExterQual', 'GarageValue',
   'GrLivArea', 'GarageAge', 'KitchenQual', 'FullBath', 'BsmtQual',
-  'BathValue', 'HouseAge', 'YearBuilt', 'GarageCars', 'Oldness',
-  'GarageFinish', 'GarageArea', 'KitchenValue', 'ExterValue',
-  'FireplaceValue', 'FireplaceQu', 'Foundation_PConc',
-  'OverallValue', 'GarageYrBlt', 'TotalBsmtSF', 'BsmtValue',
-  'Fireplaces', 'TotalSF', '1stFlrSF', 'RemodAge', 'YearRemodAdd',
-  'OpenPorchSF', 'Neighborhood_2', 'HeatingQC', 'GarageType_Attchd',
-  'TotRmsAbvGrd', 'MSSubClass_60', 'LotArea', '2ndFlrSF',
-  'GarageType_Detchd', 'Foundation_CBlock', 'Exterior2nd_VinylSd',
-  'MasVnrType_None', 'Exterior1st_VinylSd', 'GarageGrade',
-  'MasVnrArea', 'MSZoning_1', 'Neighborhood_0', 'LotFrontage',
-  'HalfBath', 'BsmtFinSF1']
+  'BathValue', 'HouseAge'] 
+  # 'YearBuilt', 'GarageCars', 'Oldness',
+  # 'GarageFinish', 'GarageArea', 'KitchenValue', 'ExterValue',
+  # 'FireplaceValue', 'FireplaceQu', 'Foundation_PConc',
+  # 'OverallValue', 'GarageYrBlt', 'TotalBsmtSF', 'BsmtValue',
+  # 'Fireplaces', 'TotalSF', '1stFlrSF', 'RemodAge', 'YearRemodAdd',
+  # 'OpenPorchSF', 'Neighborhood_2', 'HeatingQC', 'GarageType_Attchd',
+  # 'TotRmsAbvGrd', 'MSSubClass_60', 'LotArea', '2ndFlrSF',
+  # 'GarageType_Detchd', 'Foundation_CBlock', 'Exterior2nd_VinylSd',
+  # 'MasVnrType_None', 'Exterior1st_VinylSd', 'GarageGrade',
+  # 'MasVnrArea', 'MSZoning_1', 'Neighborhood_0', 'LotFrontage',
+  # 'HalfBath', 'BsmtFinSF1', 'GarageCond', 'GarageQual', 'WoodDeckSF',
+  # 'SaleType_New', 'TotalPorchSF', 'BsmtFinType1',
+  # 'SaleCondition_Partial', 'LotShape_0', 'BsmtExposure',
+  # 'MSSubClass_30']
 
 final_train = output_train[important_features+['SalePrice']]
-final_test = output_test[important_features+['Id']]
+# final_test = output_test[important_features+['Id']]
 
 
 # output
-final_train.to_csv("result/new_train2.csv", index=False)
-final_test.to_csv("result/new_test2.csv", index=False)
+final_train.to_csv("result/new_train6.csv", index=False)
+# final_test.to_csv("result/new_test3.csv", index=False)
 
 # %%
 

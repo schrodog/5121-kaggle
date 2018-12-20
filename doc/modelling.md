@@ -24,7 +24,10 @@ lower better
 ## features
 obvious improvement when restrict fields to most related 50
 
-rmse from 0.26 -> 0.228
+200 features: 0.26
+40 features: 0.2376
+50 features: 0.228
+60 features: 0.233091
 
 
 

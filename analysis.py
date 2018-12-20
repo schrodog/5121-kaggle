@@ -10,8 +10,8 @@ from minepy import MINE
 pd.options.mode.chained_assignment = None
 np.set_printoptions(precision=5, suppress=True)
 
-raw_dtrain = pd.read_csv('result/new_train.csv')
-# raw_dtest = pd.read_csv('data/test.csv')
+raw_dtrain = pd.read_csv('result/unorm_train.csv')
+raw_dtest = pd.read_csv('result/unorm_test.csv')
 # %%
 
 # print(raw_dtrain['BsmtFinSF1'].describe())
@@ -24,7 +24,7 @@ raw_dtrain = pd.read_csv('result/new_train.csv')
 # %%
 
 data = raw_dtrain.copy()
-data
+
 # data = raw_dtrain[raw_dtrain['PoolArea'] >= 0]
 # %%
 # missing=['MSZoning', 'Exterior1st', 'Exterior2nd', 'BsmtFinSF1', 'BsmtFinSF2',
@@ -48,13 +48,13 @@ data[['ExterQual']].describe()
 # %%
 # data = raw_dtrain[raw_dtrain['MiscVal'] > 0]
 
-gg = (ggplot(data, aes('SalePrice'))
-  # + geom_point()
+gg = (ggplot(data, aes(x=data.index, y='GrLivArea'))
+  + geom_point()
   # + geom_col()
   # + geom_bar()
   # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
-  + geom_histogram(binwidth=0.05)
-  + facet_wrap('GarageCars')
+  # + geom_histogram(binwidth=50)
+  # + facet_wrap('GarageCars')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
   # + coord_cartesian(ylim=(1900,2010))
   # + theme(axis_text_x=element_text(rotation=60, ha="right"))
@@ -62,10 +62,17 @@ gg = (ggplot(data, aes('SalePrice'))
 
 print(gg)
 # gg.save('outputs/month_price.pdf')
+# %%
+
+gh = (ggplot(raw_dtest, aes(x=raw_dtest.index, y='GrLivArea'))
+  + geom_point()
+  # + geom_histogram(binwidth=50)
+)
+print(gh)
 
 # %%
-# print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
-data[['SalePrice','ExterQual']].groupby(['ExterQual']).count()
+print(np.count_nonzero(data['TotalSF'] > 100000))
+# data[['SalePrice','ExterQual']].groupby(['ExterQual']).count()
 
 
 # %%
@@ -93,14 +100,17 @@ mic(data['g_OverallQual'], data['SalePrice'])
 test_feat = data.columns
 # test_feat = ['LotFrontage','GrLivArea','TotalSF','BsmtValue','OverallCond','LotArea','Oldness','OverallValue','1stFlrSF','OverallQual','TotalBsmtSF','Functional','GarageArea','YearBuilt','BsmtFinSF1','GarageYrBlt','YearRemodAdd','GarageValue','2ndFlrSF','HouseAge']
 
-corr = [mic(data['SalePrice'], data[i]) for i in test_feat]
+corr = [mic(data['OverallQual'], data[i]) for i in test_feat]
 corr_df = pd.DataFrame({'field': test_feat, 'corr': corr})
 
 corr_df.sort_values(by='corr', ascending=False)
 
 # %%
 # corr_df[corr_df['field'] == 'LotFrontage']
-corr_df.sort_values(by='corr', ascending=False).values[:50]
+corr_df.sort_values(by='corr', ascending=False).values[:60][:,0]
+
+
+
 
 
 

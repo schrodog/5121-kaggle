@@ -11,8 +11,8 @@ import warnings
 import socket; socket.gethostname()
 
 # %%
-raw_train_df = pd.read_csv('result/new_train2.csv')
-raw_test_df = pd.read_csv('result/new_test2.csv')
+raw_train_df = pd.read_csv('result/new_train6.csv')
+raw_test_df = pd.read_csv('result/new_test.csv')
 
 raw_trainY = raw_train_df['SalePrice']
 raw_train_df.drop(['SalePrice'], inplace=True, axis=1)
@@ -114,7 +114,9 @@ gg = (ggplot(dat)
   + theme(axis_text_x=element_text(rotation=70, ha="right"))
 )
 print(gg)
-print(dat['y'].values)
+# %%
+
+np.array(dat['x'].values[:20])
 
 # %%
 gg.save('result/feature_importance.png')
