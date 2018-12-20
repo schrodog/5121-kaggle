@@ -10,49 +10,97 @@ from minepy import MINE
 pd.options.mode.chained_assignment = None
 np.set_printoptions(precision=5, suppress=True)
 
-raw_dtrain = pd.read_csv('data/train.csv')
-raw_dtest = pd.read_csv('data/test.csv')
+raw_dtrain = pd.read_csv('result/new_train.csv')
+# raw_dtest = pd.read_csv('data/test.csv')
 # %%
 
 # print(raw_dtrain['BsmtFinSF1'].describe())
-np.count_nonzero(raw_dtrain['3SsnPorch'] == 0)
+# np.count_nonzero(raw_dtrain['3SsnPorch'] == 0)
 # %%
 
 # types = 'GarageAge'
-a = raw_dtest[['SaleCondition','SaleType','MSSubClass']].groupby(['SaleCondition','SaleType']).median()
-print(a)
+# a = raw_dtest[['SaleCondition','SaleType','MSSubClass']].groupby(['SaleCondition','SaleType']).median()
+# print(a)
+# %%
 
+data = raw_dtrain.copy()
+data
 # data = raw_dtrain[raw_dtrain['PoolArea'] >= 0]
-data = raw_dtest
 # %%
 # missing=['MSZoning', 'Exterior1st', 'Exterior2nd', 'BsmtFinSF1', 'BsmtFinSF2',
 #        'BsmtUnfSF', 'TotalBsmtSF', 'BsmtFullBath', 'BsmtHalfBath',
 #        'KitchenQual', 'Functional', 'GarageCars', 'GarageArea', 'SaleType']
 
-data[data['SaleType'].isna()]
+# data[data['SaleType'].isna()]
+
+# %%
+
+# data['LotArea-root5'] = data['LotArea'].transform(lambda x: x**(1/5) )
+trans = {1:0, 2:0, 3:0, 4:1, 5:1, 6:1, 7:1, 8:2, 9:2, 10:2}
+
+data['g_OverallQual'] = data['OverallQual'].transform(lambda x: trans[x])
+# %%
+# data[['binary_ExterQual','ExterQual']].head(60)
+data[['ExterQual']].describe()
+
+# data[['LotArea-root2','LotArea']].head(10)
 
 # %%
 # data = raw_dtrain[raw_dtrain['MiscVal'] > 0]
 
-gg = (ggplot(data, aes('SaleType'))
+gg = (ggplot(data, aes('SalePrice'))
   # + geom_point()
   # + geom_col()
-  + geom_bar()
+  # + geom_bar()
   # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
-  # + geom_point()
-  # + geom_histogram(binwidth=10)
-  # + facet_wrap('GarageType')
+  + geom_histogram(binwidth=0.05)
+  + facet_wrap('GarageCars')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
   # + coord_cartesian(ylim=(1900,2010))
-  # + theme(axis_text_x=element_text(rotation=0, ha="right"))
+  # + theme(axis_text_x=element_text(rotation=60, ha="right"))
 )
 
 print(gg)
 # gg.save('outputs/month_price.pdf')
 
 # %%
-print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
+# print(np.count_nonzero(raw_dtrain['GarageArea'] == 0))
+data[['SalePrice','ExterQual']].groupby(['ExterQual']).count()
 
+
+# %%
+
+def mic(x,y):
+  m = MINE()
+  m.compute_score(x,y)
+  return m.mic()
+  # return (m.mic(), 0.5)
+
+def pear_pa(x, y):
+  ret_temp = map(lambda x: pearsonr(x, y), x.T)
+  return [i[0] for i in ret_temp], [i[1] for i in ret_temp]
+
+
+def mics(x, y):
+  temp = map(lambda x: mic(x,y), x.T)
+  return [i[0] for i in temp], [i[1] for i in temp]
+
+# %%
+mic(data['g_OverallQual'], data['SalePrice'])
+
+# %%
+
+test_feat = data.columns
+# test_feat = ['LotFrontage','GrLivArea','TotalSF','BsmtValue','OverallCond','LotArea','Oldness','OverallValue','1stFlrSF','OverallQual','TotalBsmtSF','Functional','GarageArea','YearBuilt','BsmtFinSF1','GarageYrBlt','YearRemodAdd','GarageValue','2ndFlrSF','HouseAge']
+
+corr = [mic(data['SalePrice'], data[i]) for i in test_feat]
+corr_df = pd.DataFrame({'field': test_feat, 'corr': corr})
+
+corr_df.sort_values(by='corr', ascending=False)
+
+# %%
+# corr_df[corr_df['field'] == 'LotFrontage']
+corr_df.sort_values(by='corr', ascending=False).values[:50]
 
 
 

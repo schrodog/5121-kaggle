@@ -21,6 +21,11 @@ lower better
 ## 
 
 
+## features
+obvious improvement when restrict fields to most related 50
+
+rmse from 0.26 -> 0.228
+
 
 
 

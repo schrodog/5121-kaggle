@@ -11,8 +11,8 @@ import warnings
 import socket; socket.gethostname()
 
 # %%
-raw_train_df = pd.read_csv('result/new_train.csv')
-raw_test_df = pd.read_csv('result/new_test.csv')
+raw_train_df = pd.read_csv('result/new_train2.csv')
+raw_test_df = pd.read_csv('result/new_test2.csv')
 
 raw_trainY = raw_train_df['SalePrice']
 raw_train_df.drop(['SalePrice'], inplace=True, axis=1)
@@ -98,7 +98,8 @@ regressor = XGBRegressor(
 # best_param, min_rmse, best_cvresult = 
 # print(best_param)
 # print(best_cvresult)
-importance = model_training(regressor, raw_trainX, tune_param=None, label=raw_trainY )
+# importance = model_training(regressor, raw_trainX, tune_param=None, label=raw_trainY )
+model_training(regressor, train_data, tune_param=param_tune )
 
 # %%
 # dat2 = dat.iloc[:15]
@@ -109,12 +110,15 @@ dat['x'] = pd.Categorical(dat['x'], categories=raw_imp.index, ordered=True)
 
 gg = (ggplot(dat)
   + geom_col(aes(x='x',y='y'))
+  # + geom_text(aes(x='x',y='y',label='y'), position=position_stack(vjust=5))
   + theme(axis_text_x=element_text(rotation=70, ha="right"))
 )
 print(gg)
+print(dat['y'].values)
 
 # %%
-dat
+gg.save('result/feature_importance.png')
+
 
 # %%
 
@@ -175,11 +179,20 @@ print(best_cvresult)
 
 # %% real prediction
 
+regressor = XGBRegressor(
+  learning_rate=0.05, max_depth=5, n_estimator=300,
+  min_child_weight=1, gamma=0, 
+  subsample=0.8, colsample_bytree=0.8,
+  reg_lambda=0.1, reg_alpha=0.1,
+  object='reg:linear',
+  seed=10, n_jobs=12
+)
+
 regressor.fit(raw_trainX, raw_trainY)
 prediction = np.expm1(regressor.predict(raw_test_df))
 prediction_df = pd.DataFrame({'Id': test_id, 'SalePrice': prediction})
 
-prediction_df.to_csv("result/submission.csv", index=False)
+prediction_df.to_csv("result/submission2.csv", index=False)
 
 # %%
 

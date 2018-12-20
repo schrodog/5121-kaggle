@@ -104,7 +104,8 @@ MiscFeature {Only Shed is meaningful}
 MiscVal: 0 -> 0, >0 -> 1
  {1408 records == 0}
 
-OverallQual, OverallCond -> 0-5
+OverallQual -> 1-3,4-7,8-10
+OverallCond -> 0-5
 GarageQual, GarageCond -> 0-5
 ExterQual, ExterCond -> 0-5
 KitchenAbvQual, KitchenCond -> 0-5
@@ -136,12 +137,97 @@ MonthSaledMeanPrice, MSSubClassMeanPrice, NeighborPrice.. -> log(1+x)
 exterior1st (imstucc,stone), ...
 
 
+## most important features
+LotFrontage
+GrLivArea
+TotalSF
+BsmtValue
+OverallCond
+LotArea
+Oldness
+OverallValue
+1stFlrSF
+OverallQual
 
+TotalBsmtSF
+Functional
+GarageArea
+YearBuilt
+BsmtFinSF1
+GarageYrBlt
+YearRemodAdd
+GarageValue
+2ndFlrSF
+HouseAge
 
+RemodAge
+OpenPorchSF
+BsmtExposure
+BsmtUnfSF
+TotalPorchSF
+-----
+diff:
 
+LotArea
+WoodDeskSF
+MonthSaledCount
+MonthSaledMeanPrice
+MasVnrArea
+LotArea-S2
 
+## MINE
+use MIC, (maximum information coefficient)
 
-
+['SalePrice', 0.9999951767650229],
+['OverallQual', 0.5607558959551385],
+['ExterQual', 0.4894627978060431],
+['GarageValue', 0.4891427673261014],
+['GrLivArea', 0.4845168975576535],
+['GarageAge', 0.4614426655064794],
+['KitchenQual', 0.45472221034923543],
+['FullBath', 0.43809982011943255],
+['BsmtQual', 0.43542394796184447],
+['BathValue', 0.43202497986898086],
+['HouseAge', 0.4126891991394268],
+['YearBuilt', 0.4080867598152763],
+['GarageCars', 0.40695379629506917],
+['Oldness', 0.4050056942712898],
+['GarageFinish', 0.4011832931810155],
+['GarageArea', 0.3967203817544145],
+['KitchenValue', 0.382648832485799],
+['ExterValue', 0.36583929759853245],
+['FireplaceValue', 0.35894074606131937],
+['FireplaceQu', 0.3566699060952901],
+['Foundation_PConc', 0.35390809708048115],
+['OverallValue', 0.34619210141355805],
+['GarageYrBlt', 0.3407989743834871],
+['TotalBsmtSF', 0.3401545667869029],
+['BsmtValue', 0.338028409514795],
+['Fireplaces', 0.3281733570536026],
+['TotalSF', 0.31562315718579015],
+['1stFlrSF', 0.3004397810082837],
+['RemodAge', 0.2926741146528306],
+['YearRemodAdd', 0.28969024646250424],
+['OpenPorchSF', 0.2817148580971405],
+['Neighborhood_2', 0.2742739031272732],
+['HeatingQC', 0.27262361164053184],
+['GarageType_Attchd', 0.2709341502065679],
+['TotRmsAbvGrd', 0.26665366329697016],
+['MSSubClass_60', 0.262915937157715],
+['LotArea', 0.25723374369047064],
+['2ndFlrSF', 0.24676351277251868],
+['GarageType_Detchd', 0.24501025415538208],
+['Foundation_CBlock', 0.23321418915247152],
+['Exterior2nd_VinylSd', 0.21218151402371083],
+['MasVnrType_None', 0.20810188769043536],
+['Exterior1st_VinylSd', 0.20717773282317156],
+['GarageGrade', 0.2066014557717289],
+['MasVnrArea', 0.20471261221835307],
+['MSZoning_1', 0.20237957821988165],
+['Neighborhood_0', 0.2000896451912745],
+['LotFrontage', 0.1999896666622148],
+['HalfBath', 0.19850549414199556],
+['BsmtFinSF1', 0.19351804512526782]]
 
 
 

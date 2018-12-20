@@ -13,23 +13,6 @@ np.set_printoptions(precision=5, suppress=True)
 
 # import socket; socket.gethostname()
 
-#
-
-# def mic(x,y):
-#   m = MINE()
-#   m.compute_score(x,y)
-#   print(m.mic())
-#   return (m.mic(), 0.5)
-
-# def pear_pa(x, y):
-#   ret_temp = map(lambda x: pearsonr(x, y), x.T)
-#   return [i[0] for i in ret_temp], [i[1] for i in ret_temp]
-
-
-# def mics(x, y):
-#   temp = map(lambda x: mic(x,y), x.T)
-#   return [i[0] for i in temp], [i[1] for i in temp]
-
 raw_dtrain = pd.read_csv('data/train.csv')
 raw_dtest = pd.read_csv('data/test.csv')
 
@@ -192,6 +175,11 @@ combined_df.drop(onehot_fields , inplace=True, axis=1)
 train_data = combined_df[combined_df.index.labels[0] == 0].values
 test_data = combined_df[combined_df.index.labels[0] == 1].values
 
+unorm_train = pd.DataFrame(train_data, columns=combined_df.columns)
+unorm_train['SalePrice'] = pd.Series(SalePrice.values)
+unorm_train.to_csv("result/unorm_train.csv", index=False)
+
+
 trans_train = RobustScaler().fit_transform(train_data)
 trans_test = RobustScaler().fit_transform(test_data)
 
@@ -201,14 +189,31 @@ output_train['SalePrice'] = pd.Series(np.log1p(SalePrice.values))
 output_test = pd.DataFrame(trans_test , columns=combined_df.columns)
 output_test['Id'] = pd.Series(Test_id)
 
+# selected most important features
+important_features = [
+  'OverallQual', 'ExterQual', 'GarageValue',
+  'GrLivArea', 'GarageAge', 'KitchenQual', 'FullBath', 'BsmtQual',
+  'BathValue', 'HouseAge', 'YearBuilt', 'GarageCars', 'Oldness',
+  'GarageFinish', 'GarageArea', 'KitchenValue', 'ExterValue',
+  'FireplaceValue', 'FireplaceQu', 'Foundation_PConc',
+  'OverallValue', 'GarageYrBlt', 'TotalBsmtSF', 'BsmtValue',
+  'Fireplaces', 'TotalSF', '1stFlrSF', 'RemodAge', 'YearRemodAdd',
+  'OpenPorchSF', 'Neighborhood_2', 'HeatingQC', 'GarageType_Attchd',
+  'TotRmsAbvGrd', 'MSSubClass_60', 'LotArea', '2ndFlrSF',
+  'GarageType_Detchd', 'Foundation_CBlock', 'Exterior2nd_VinylSd',
+  'MasVnrType_None', 'Exterior1st_VinylSd', 'GarageGrade',
+  'MasVnrArea', 'MSZoning_1', 'Neighborhood_0', 'LotFrontage',
+  'HalfBath', 'BsmtFinSF1']
+
+final_train = output_train[important_features+['SalePrice']]
+final_test = output_test[important_features+['Id']]
+
+
 # output
-output_train.to_csv("result/new_train.csv", index=False)
-output_test.to_csv("result/new_test.csv", index=False)
+final_train.to_csv("result/new_train2.csv", index=False)
+final_test.to_csv("result/new_test2.csv", index=False)
+
 # %%
-output_test
-
-
-
 
 
 
