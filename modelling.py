@@ -62,16 +62,6 @@ def model_training(regressor, data, tune_param=None, label=None):
       all_param[param] = best_param
     return (best_params, min_rmse, best_cvresult)  
 
-  # else:
-  #   cvresult = xgb.cv(
-  #       all_param, data, num_boost_round=all_param['n_estimators'], 
-  #       nfold=cv_folds, metrics='rmse', 
-  #       early_stopping_rounds=early_stopping_rounds)
-  #   count = cvresult.shape[0]
-  #   mean_rmse = cvresult.loc[count-11 : count-1, 'test-rmse-mean'].mean()
-  #   std_rmse = cvresult.loc[count-11 : count-1, 'test-rmse-std'].mean()    
-  #   best_param, min_rmse, best_cvresult = all_param, mean_rmse, cvresult
-
   else:
     regressor.fit(data,label)
     predict = regressor.predict(data)

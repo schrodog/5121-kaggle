@@ -2,9 +2,6 @@
 { } = explanation
 
 ## Data Cleaning
-### remove outlier
-lotFrontage, LotArea, MasVnrArea
-- where data range exist only in training, not testing data
 combine test & train dataset
 
 ### find missing train data
