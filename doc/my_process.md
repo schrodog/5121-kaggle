@@ -121,20 +121,20 @@ OneHot Encoding: no apparent ordering
 
 ## Scale features
 SalePrice -> log(1+x)
+  {tried division, result not good}
 all other features already become numbers => RobustScale
 
 
 ## outlier
-### exist in train, not test
+{Since removing record makes things worse, we instead clip outlier}
+1. clip uppeer 99% quantile
+['GrLivArea','2ndFlrSF','1stFlrSF','TotalBsmtSF','MasVnrArea','LotArea','LotFrontage', 'GarageArea', 'GarageCars', 'SalePrice','BsmtValue','TotalSF']
+2. clip lower 1% quantile
+SalePrice
 
-TotalSF > 100,000 [4]
 
-LotFrontage > 200
-LotArea > 100,000
 
-MasVnrArea > 1500
-
-1. drop rows missing in test data
+3. drop rows missing in test data
 exterior1st (imstucc,stone), ...
 
 ## important features
@@ -147,15 +147,15 @@ OverallValue
 BsmtValue
 HouseAge
 1stFlrSF
-TotalBsmtS
+TotalBsmtSF
 Oldness
 LotFrontage
 TotalPorchSF
-GarageAre
+GarageArea
 FireplaceValue
 LotArea
 GarageYrBlt
-BathValu
+BathValue
 ExterQual
 2ndFlrSF
 KitchenQual
@@ -254,6 +254,49 @@ use MIC, (maximum information coefficient)
 
 - basically 2 groups overlap, so choose top 50
 
+## RandomizedLasso score
+GrLivArea       	0.565
+KitchenQual       	0.560
+GarageCars        	0.535
+OverallQual       	0.505
+ExterQual       	0.500
+GarageValue       	0.495
+BsmtValue       	0.455
+BathValue       	0.425
+FireplaceValue        	0.415
+TotalBsmtSF       	0.385
+1stFlrSF        	0.370
+MasVnrArea        	0.295
+BsmtQual        	0.285
+GarageArea        	0.270
+Oldness       	0.260
+OverallValue        	0.250
+Neighborhood_2        	0.250
+TotRmsAbvGrd        	0.225
+FireplaceQu       	0.220
+ExterValue        	0.210
+BsmtExposure        	0.205
+BsmtFinSF1        	0.150
+GarageFinish        	0.140
+Fireplaces        	0.115
+FullBath        	0.110
+TotalSF       	0.100
+2ndFlrSF        	0.090
+HouseAge        	0.085
+YearBuilt       	0.065
+Foundation_PConc        	0.060
+
+
+# Make result worse!!
+### exist in train, not test
+TotalSF > 100,000 [4]
+BsmtValue > 60,000 [1]
+TotalBsmtSF > 6000 [1]
+LotFrontage > 200
+LotArea > 100,000
+MasVnrArea > 1500
+
+{in total 7 rows excluded}
 
 
 

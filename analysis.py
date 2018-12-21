@@ -12,68 +12,79 @@ np.set_printoptions(precision=5, suppress=True)
 
 raw_dtrain = pd.read_csv('result/unorm_train.csv')
 raw_dtest = pd.read_csv('result/unorm_test.csv')
-# %%
-
-# print(raw_dtrain['BsmtFinSF1'].describe())
-# np.count_nonzero(raw_dtrain['3SsnPorch'] == 0)
-# %%
-
-# types = 'GarageAge'
-# a = raw_dtest[['SaleCondition','SaleType','MSSubClass']].groupby(['SaleCondition','SaleType']).median()
-# print(a)
-# %%
+# raw_dtrain = pd.read_csv('result/new_train7.csv')
+# raw_dtest = pd.read_csv('result/new_test7.csv')
 
 data = raw_dtrain.copy()
-
-# data = raw_dtrain[raw_dtrain['PoolArea'] >= 0]
 # %%
-# missing=['MSZoning', 'Exterior1st', 'Exterior2nd', 'BsmtFinSF1', 'BsmtFinSF2',
-#        'BsmtUnfSF', 'TotalBsmtSF', 'BsmtFullBath', 'BsmtHalfBath',
-#        'KitchenQual', 'Functional', 'GarageCars', 'GarageArea', 'SaleType']
 
-# data[data['SaleType'].isna()]
+skewed = raw_dtrain.skew()
+
+skew_df = pd.DataFrame({'x': skewed.index, 'y': skewed.values})
+skew_df.sort_values(by='y', ascending=False).iloc[30:80]
+
+# %%
+
 
 # %%
 
 # data['LotArea-root5'] = data['LotArea'].transform(lambda x: x**(1/5) )
-trans = {1:0, 2:0, 3:0, 4:1, 5:1, 6:1, 7:1, 8:2, 9:2, 10:2}
+# trans = {1:0, 2:0, 3:0, 4:1, 5:1, 6:1, 7:1, 8:2, 9:2, 10:2}
+# data['g_OverallQual'] = data['OverallQual'].transform(lambda x: trans[x])
 
-data['g_OverallQual'] = data['OverallQual'].transform(lambda x: trans[x])
-# %%
-# data[['binary_ExterQual','ExterQual']].head(60)
-data[['ExterQual']].describe()
+data['GrLivArea'] = data['GrLivArea'].clip_upper(data['GrLivArea'].quantile(0.99))
+# data['GrLivArea'].describe()
 
-# data[['LotArea-root2','LotArea']].head(10)
 
 # %%
-# data = raw_dtrain[raw_dtrain['MiscVal'] > 0]
+data.groupby('MSSubClass')['SalePrice'].agg(['mean','median','count']).sort_values(by='median')
 
-gg = (ggplot(data, aes(x=data.index, y='GrLivArea'))
-  + geom_point()
+# %%
+types = "SalePrice"
+gg = (ggplot(data, aes('PoolArea'))
+  # + geom_point()
   # + geom_col()
   # + geom_bar()
   # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
-  # + geom_histogram(binwidth=50)
-  # + facet_wrap('GarageCars')
+  + geom_histogram(binwidth=10)
+  # + facet_wrap('MSSubClass')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
+  + scale_x_continuous(name="train")
   # + coord_cartesian(ylim=(1900,2010))
   # + theme(axis_text_x=element_text(rotation=60, ha="right"))
 )
-
 print(gg)
-# gg.save('outputs/month_price.pdf')
 # %%
 
-gh = (ggplot(raw_dtest, aes(x=raw_dtest.index, y='GrLivArea'))
-  + geom_point()
+gg.save('result/msclass.png')
+# %%
+
+
+# %%
+
+# gg.save('outputs/month_price.pdf')
+
+gh = (ggplot(raw_dtest, aes('2nd'))
+  # + geom_point()
+  + geom_histogram(binwidth=0.1)
+  + scale_x_continuous(name="test")
   # + geom_histogram(binwidth=50)
 )
 print(gh)
+# %%
+data['YrSold']
 
 # %%
-print(np.count_nonzero(data['TotalSF'] > 100000))
-# data[['SalePrice','ExterQual']].groupby(['ExterQual']).count()
+types = "BsmtValue"
+value = 60000
+print(np.count_nonzero(data[types] > value))
+print(np.count_nonzero(raw_dtest[types] > value))
+# %%
+data[(data['TotalSF'] > 100000) | (data['BsmtValue']>60000) | (data['TotalBsmtSF'] > 6000) | (data['LotFrontage'] > 200) | (data['LotArea'] > 100000) | (data['MasVnrArea'] > 1500)].index
 
+
+# data[['SalePrice','ExterQual']].groupby(['ExterQual']).count()
+# data['TotalSF'].values > 100000
 
 # %%
 
@@ -93,7 +104,7 @@ def mics(x, y):
   return [i[0] for i in temp], [i[1] for i in temp]
 
 # %%
-mic(data['g_OverallQual'], data['SalePrice'])
+mic(data['MoSold'], data['SalePrice'])
 
 # %%
 
@@ -200,6 +211,63 @@ np.column_stack((data.index, kmeans.labels_))
 
 combined_df.columns[combined_df.count() < 2919]
 # combined_df.info()
+
+# %% feature selection L1, L2
+
+from sklearn.linear_model import Lasso, Ridge, RandomizedLasso
+from sklearn.preprocessing import StandardScaler
+
+raw_train_df = pd.read_csv('result/new_train8.csv')
+raw_trainY = raw_train_df['SalePrice']
+raw_train_df.drop(['SalePrice'], inplace=True, axis=1)
+
+# scaler = StandardScaler()
+# raw_trainX = scaler.fit_transform(raw_train_df.values)
+raw_trainX = raw_train_df.values
+
+# model = Ridge(alpha=0.3)
+model = RandomizedLasso(alpha=0.001)
+model.fit(raw_trainX, raw_trainY)
+
+feat_df = pd.DataFrame({'x': raw_train_df.columns, 'y': model.scores_})
+feat_df.sort_values(by='y', ascending=False)
+
+# %%
+feat_df.sort_values(by='y', ascending=False)['x'].values[:50]
+
+
+
+# %%
+
+gh = (ggplot(raw_train_df, aes(x=raw_train_df.index, y='GarageYrBlt'))
+  + geom_point()
+  # + scale_x_continuous(name="test")
+  # + geom_histogram(binwidth=50)
+)
+print(gh)
+
+# %% PCA
+
+from sklearn.decomposition import PCA
+
+pca_hp = PCA(30)
+x_fit = pca_hp.fit_transform(raw_trainX)
+
+# pca_hp.components_
+# %%
+xx = np.array([[1,2,3],[4,5,6]])
+
+dict([['x'+str(i), xx[i]] for i in range(xx.shape[0])])
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from plotnine import *
-from sklearn.preprocessing import RobustScaler, MinMaxScaler
+from sklearn.preprocessing import RobustScaler, StandardScaler, MinMaxScaler
 from sklearn.feature_selection import VarianceThreshold
 from scipy.stats import pearsonr
 from minepy import MINE
@@ -111,7 +111,8 @@ transformation_matrix = {
 'LotShape': {'Reg':0, 'IR1':1, 'IR2':2, 'IR3':2},
 'MSZoning': {'RL':0, 'RM':1, 'FV':2, 'A':3, 'C':3, 'I':3, 'RH':3, 'RP':3},
 'Condition1': {'Norm': 0, 'Feedr':1, 'Artery':2, 'PosA':3, 'PosN':3, 'RRAe':3, 'RRAn':3, 'RRNe':3, 'RRNn':3},
-'Neighborhood': {'Blmngtn': 2,'Blueste': 3,'BrDale': 2,'BrkSide': 0,'ClearCr': 1,'CollgCr': 1,'Crawfor': 0,'Edwards': 1,'Gilbert': 0,'GrnHill': 3,'IDOTRR': 0,'Landmrk': 2,'MeadowV': 4,'Mitchel': 0,'NAmes': 0,'NPkVill': 2,'NWAmes': 2,'NoRidge': 2,'NridgHt': 2,'OldTown': 0,'SWISU': 3,'Sawyer': 1,'SawyerW': 1,'Somerst': 2,'StoneBr': 2,'Timber': 3,'Veenker': 2}
+'Neighborhood': {'Blmngtn': 2,'Blueste': 3,'BrDale': 2,'BrkSide': 0,'ClearCr': 1,'CollgCr': 1,'Crawfor': 0,'Edwards': 1,'Gilbert': 0,'GrnHill': 3,'IDOTRR': 0,'Landmrk': 2,'MeadowV': 4,'Mitchel': 0,'NAmes': 0,'NPkVill': 2,'NWAmes': 2,'NoRidge': 2,'NridgHt': 2,'OldTown': 0,'SWISU': 3,'Sawyer': 1,'SawyerW': 1,'Somerst': 2,'StoneBr': 2,'Timber': 3,'Veenker': 2},
+'MSSubClass': {20:2, 30:0 , 40:2 , 45:0 , 50:1 , 60:3 , 70:2 , 75:2 ,80:2 , 85:1 ,90:1 , 120:3, 150:4, 160:2 ,180:0 , 190:1 }
 }
 # correct error
 combined_df['Electrical'] = combined_df['Electrical'].transform(lambda x: 'SBrkr' if x=='Sbrkr' else x )
@@ -139,13 +140,14 @@ def getGarageAge():
     garage = combined_df['GarageYrBlt'][i]
     remod = combined_df['YearRemodAdd'][i]
     if garage == -1:
-      res.append(-1)
+      res.append(-10)
     else:
       res.append(sold - max(garage, remod))
   return np.array(res)
 
 # grade
-combined_df['GarageAge'] = pd.Series(getGarageAge())
+# must supply index if df's index different from array's index
+combined_df['GarageAge'] = pd.Series(getGarageAge(), index=combined_df.index)
 combined_df['OverallValue'] = pd.Series(combined_df['OverallQual'] + combined_df['OverallCond'])
 combined_df['GarageGrade'] = pd.Series(combined_df['GarageQual'] + combined_df['GarageCond'])
 combined_df['ExterValue'] = pd.Series(combined_df['ExterQual'] + combined_df['ExterCond'])
@@ -161,7 +163,8 @@ combined_df['TotalSF'] = pd.Series(combined_df['1stFlrSF'] + combined_df['2ndFlr
 
 
 # One hot encoding
-onehot_fields = ['MSSubClass','MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseStyle','RoofStyle','Exterior1st','Exterior2nd','MasVnrType','Foundation','GarageType','MoSold','YrSold','SaleType','SaleCondition','LotConfig','LandContour']
+onehot_fields = ['MSZoning','LotShape','Neighborhood','Condition1','BldgType','HouseStyle','RoofStyle','Exterior1st','Exterior2nd','MasVnrType','Foundation','GarageType','SaleType','SaleCondition','LotConfig','LandContour','MSSubClass']
+# 'YrSold','MoSold'
 
 for field in onehot_fields:
   onehot_mat = pd.get_dummies(combined_df[field])
@@ -171,7 +174,7 @@ for field in onehot_fields:
 combined_df.drop(onehot_fields , inplace=True, axis=1)
 
 
-# Scaling
+# Extract train, test data
 train_data = combined_df[combined_df.index.labels[0] == 0].values
 test_data = combined_df[combined_df.index.labels[0] == 1].values
 
@@ -183,8 +186,32 @@ unorm_test = pd.DataFrame(test_data, columns=combined_df.columns)
 unorm_test['Id'] = pd.Series(Test_id)
 unorm_test.to_csv("result/unorm_test.csv", index=False)
 
+# Adjust skewed
+skewed_feature = ['LotArea','TotalSF','Heating','MiscVal','KitchenAbvGr','Alley']
+for i in skewed_feature:
+  unorm_train[i] = np.log1p(unorm_train[i])
 
-trans_train = RobustScaler().fit_transform(train_data)
+# Clip outlier
+clip_upper_feature = ['GrLivArea','2ndFlrSF','1stFlrSF','TotalBsmtSF','MasVnrArea','LotArea','LotFrontage', 'GarageArea', 'GarageCars', 'SalePrice','BsmtValue','TotalSF']
+
+clip_lower_feature = ['SalePrice','1stFlrSF']
+for i in clip_upper_feature:
+  unorm_train[i] = unorm_train[i].clip_upper(unorm_train[i].quantile(0.99))
+  unorm_train[i] = unorm_train[i].clip_lower(unorm_train[i].quantile(0.01))
+# for i in clip_lower_feature:
+
+
+# remove outlier
+# outlier_index = unorm_train[(unorm_train['TotalSF'] > 100000) | (unorm_train['BsmtValue']>60000) | (unorm_train['TotalBsmtSF'] > 6000) | (unorm_train['LotFrontage'] > 200) | (unorm_train['LotArea'] > 100000) | (unorm_train['MasVnrArea'] > 1500)].index
+# outlier_index = unorm_train[(unorm_train['GrLivArea'] > 4000)].index
+# unorm_train.drop(outlier_index, inplace=True)
+
+# print(outlier_index)
+train_data2 = unorm_train.drop(['SalePrice'], axis=1)
+
+
+# Scaling
+trans_train = RobustScaler().fit_transform(train_data2.values)
 trans_test = RobustScaler().fit_transform(test_data)
 
 output_train = pd.DataFrame(trans_train, columns=combined_df.columns)
@@ -193,36 +220,79 @@ output_train['SalePrice'] = pd.Series(np.log1p(SalePrice.values))
 output_test = pd.DataFrame(trans_test , columns=combined_df.columns)
 output_test['Id'] = pd.Series(Test_id)
 
-# %%
 
 # selected most important features
+
 important_features = ['OverallQual', 'ExterQual', 'GarageValue',
   'GrLivArea', 'GarageAge', 'KitchenQual', 'FullBath', 'BsmtQual',
-  'BathValue', 'HouseAge'] 
-  # 'YearBuilt', 'GarageCars', 'Oldness',
-  # 'GarageFinish', 'GarageArea', 'KitchenValue', 'ExterValue',
-  # 'FireplaceValue', 'FireplaceQu', 'Foundation_PConc',
-  # 'OverallValue', 'GarageYrBlt', 'TotalBsmtSF', 'BsmtValue',
-  # 'Fireplaces', 'TotalSF', '1stFlrSF', 'RemodAge', 'YearRemodAdd',
-  # 'OpenPorchSF', 'Neighborhood_2', 'HeatingQC', 'GarageType_Attchd',
-  # 'TotRmsAbvGrd', 'MSSubClass_60', 'LotArea', '2ndFlrSF',
-  # 'GarageType_Detchd', 'Foundation_CBlock', 'Exterior2nd_VinylSd',
-  # 'MasVnrType_None', 'Exterior1st_VinylSd', 'GarageGrade',
-  # 'MasVnrArea', 'MSZoning_1', 'Neighborhood_0', 'LotFrontage',
-  # 'HalfBath', 'BsmtFinSF1', 'GarageCond', 'GarageQual', 'WoodDeckSF',
-  # 'SaleType_New', 'TotalPorchSF', 'BsmtFinType1',
-  # 'SaleCondition_Partial', 'LotShape_0', 'BsmtExposure',
-  # 'MSSubClass_30']
+  'BathValue', 'HouseAge', 'GarageCars', 'Oldness',
+  'GarageFinish', 'GarageArea', 'KitchenValue', 'ExterValue',
+  'FireplaceValue', 'FireplaceQu', 'Foundation_PConc',
+  'OverallValue', 'TotalBsmtSF', 'BsmtValue',
+  'Fireplaces', 'TotalSF', '1stFlrSF', 'RemodAge', 'YearRemodAdd',
+  'OpenPorchSF', 'Neighborhood_2', 'HeatingQC', 'GarageType_Attchd',
+  'TotRmsAbvGrd', 'LotArea', '2ndFlrSF',
+  'GarageType_Detchd', 'Foundation_CBlock', 'Exterior2nd_VinylSd',
+  'MasVnrType_None', 'Exterior1st_VinylSd', 'GarageGrade',
+  'MasVnrArea', 'MSZoning_1', 'Neighborhood_0', 'LotFrontage',
+  'HalfBath', 'BsmtFinSF1']
+
+# important_features = [
+#   'OverallValue', 'GrLivArea', 'BsmtValue', 'OverallQual', 'Oldness',
+#   'TotalSF', 'TotalBsmtSF', 'KitchenQual', 'GarageCars',
+#   'GarageValue', 'BathValue', 'GarageArea', 'FireplaceValue',
+#   'ExterQual', 'FireplaceQu', '1stFlrSF', 'GarageFinish', 'BsmtQual',
+#   'HouseAge', 'HeatingQC', 'LotArea', 'MSZoning_1', 'MSSubClass_0',
+#   'YearBuilt', 'Fireplaces', 'RemodAge', 'TotRmsAbvGrd',
+#   'ExterValue', 'BsmtFinType1', 'Foundation_PConc', '2ndFlrSF',
+#   'YearRemodAdd', 'FullBath', 'HalfBath', 'BsmtFinSF1',
+#   'Neighborhood_2', 'MSZoning_0', 'GarageGrade', 'GarageType_Attchd',
+#   'LotFrontage', 'GarageQual', 'PavedDrive', 'GarageCond',
+#   'MSSubClass_3', 'BsmtExposure', 'HouseStyle_2Story', 'WoodDeckSF',
+#   'BsmtFullBath', 'GarageYrBlt', 'BedroomAbvGr'
+# ]
+
 
 final_train = output_train[important_features+['SalePrice']]
-# final_test = output_test[important_features+['Id']]
+final_test = output_test[important_features+['Id']]
+
+# final_train = output_train
+# final_test = output_test
+
+
+# pca
+# from sklearn.decomposition import PCA
+
+# pca = PCA(60)
+# pca_train = pca.fit_transform(final_train.values)
+# pca_test = pca.fit_transform(final_test.values)
+
+# x1 = dict([['x'+str(i), pca_train[:,i]] for i in range(pca_train.shape[1])])
+# x2 = dict([['x'+str(i), pca_test[:,i]] for i in range(pca_test.shape[1])])
+# x1['SalePrice'] = pd.Series(np.log1p(SalePrice.values))
+# x2['Id'] = pd.Series(Test_id)
+
+
+# pca_train_df = pd.DataFrame(x1)
+# pca_test_df = pd.DataFrame(x2)
 
 
 # output
-final_train.to_csv("result/new_train6.csv", index=False)
-# final_test.to_csv("result/new_test3.csv", index=False)
+final_train.to_csv("result/new_train8.csv", index=False)
+final_test.to_csv("result/new_test8.csv", index=False)
 
 # %%
+
+
+
+
+
+
+
+
+
+
+
 
 
 

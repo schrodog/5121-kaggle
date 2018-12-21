@@ -8,17 +8,23 @@ specify early_stopping_round=stop if no improvement for n rounds,
 5. after all these adjustment, reduce learning rate to try again
 
 
+## xgb parameters
 n_estimator: 300
+max_depth: 4
+min_child_weight: 8
+reg_lambda: 0.06
+reg_alpha: 0.04
+objective function: linear
 
-## max_depth
-best: 5
-higher better
+## other models
+Lasso
+Ridge
+ElasticNet
 
-## min_child_weight
-best: 2
-lower better
-
-## 
+## Ensemble model
+1. get rmse for training dataset
+2. weight = 1/error
+3. weighted sum of predictions from 4 models
 
 
 ## features
@@ -29,9 +35,10 @@ obvious improvement when restrict fields to most related 50
 50 features: 0.228
 60 features: 0.233091
 
+clipped data: 0.227593
+clipped upper,lower: 0.225630
 
-
-
+0.146653
 
 
 
