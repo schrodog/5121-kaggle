@@ -20,6 +20,7 @@ raw_dtest = pd.read_csv('data/test.csv')
 # raw_dtest = pd.read_csv('result/new_test7.csv')
 
 data = raw_dtrain.copy()
+
 # %%
 
 skewed = raw_dtrain.skew()
@@ -49,22 +50,22 @@ data.groupby('MSSubClass')['SalePrice'].agg(['mean','median','count']).sort_valu
 
 # %%
 types = "SalePrice"
-gg = (ggplot(data, aes('SalePrice'))
+gg = (ggplot(data, aes('GrLivArea'))
   # + geom_point()
   # + geom_col()
   # + geom_bar()
   # + stat_count(aes(label='stat(count)'), geom='text', position=position_stack(vjust=1.05))
-  + geom_histogram(binwidth=300)
-  + facet_wrap('MSSubClass')
+  + geom_histogram(binwidth=60)
+  # + facet_wrap('MSSubClass')
   # + scale_y_continuous(breaks=range(1850, 2020, 10) )
   # + scale_x_continuous(name="train")
   # + coord_cartesian(ylim=(1900,2010))
-  + theme(axis_text_x=element_text(rotation=60, ha="right"))
+  # + theme(axis_text_x=element_text(rotation=60, ha="right"))
 )
 print(gg)
 # %%
 
-gg.save('result/msclass2.png')
+gg.save('result/grlivarea.png')
 # %%
 
 
