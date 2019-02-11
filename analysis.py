@@ -30,7 +30,8 @@ skew_df.sort_values(by='y', ascending=False).iloc[30:80]
 
 # %%
 # raw_dtest[raw_dtest['Exterior1st'].isnull()]
-raw_dtest[['Exterior1st','RoofMatl','Id']].groupby(['Exterior1st','RoofMatl']).agg('count')
+# raw_dtest[['Exterior1st','RoofMatl','Id']].groupby(['Exterior1st','RoofMatl']).agg('count')
+raw_dtest[['LotFrontage','Neighborhood']].groupby(['Neighborhood']).agg({'LotFrontage': ['median']})
 
 # %%
 
